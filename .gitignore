@@ -1,0 +1,25 @@
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Dependency folders
+node_modules/
+vendor/
+
+# Environment files
+.env
+.env.*
+
+# Local uploads/cache/temp
+uploads/
+tmp/
+cache/
+
+# XAMPP/Apache generated
+*.pid
+
