@@ -42,9 +42,9 @@ session_start();
         
         
         <form method="POST" action="login_process.php" >
-            <input type="email" name="email" placeholder="Username" required>
-           <input type="password" name="password" placeholder="Password" required>
-           <button type="submit">Login</button>
+            <input type="text" name="login_id" placeholder="Email or Shop ID" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
         </form>
 
 

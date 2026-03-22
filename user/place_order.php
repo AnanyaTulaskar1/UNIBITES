@@ -84,10 +84,13 @@ if ($itemCount <= 0) {
     exit();
 }
 
+// Ensure daily token reset follows IST date.
+mysqli_query($conn, "SET time_zone = '+05:30'");
+
 mysqli_begin_transaction($conn);
 
 try {
-    $stmtToken = mysqli_prepare($conn, "SELECT COALESCE(MAX(token_no), 0) + 1 AS next_token FROM orders WHERE shop_key = ? FOR UPDATE");
+    $stmtToken = mysqli_prepare($conn, "SELECT COALESCE(MAX(token_no), 0) + 1 AS next_token FROM orders WHERE shop_key = ? AND DATE(created_at) = CURDATE() FOR UPDATE");
     if (!$stmtToken) {
         throw new Exception(mysqli_error($conn));
     }
