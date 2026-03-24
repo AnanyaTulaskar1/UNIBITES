@@ -134,7 +134,8 @@ function parseItems(string $itemsJson): array {
         .top a { text-decoration: none; background: #111827; color: #fff; padding: 8px 12px; border-radius: 8px; display: inline-block; }
         .filters a { margin-right: 6px; margin-top: 8px; display: inline-block; text-decoration: none; padding: 6px 10px; border-radius: 8px; background: #e5e7eb; color: #111827; }
         .filters a.active { background: #111827; color: #fff; }
-        .card { background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.06); }
+        .card { background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.06); transition: background 0.2s ease, border-color 0.2s ease; border-left: 4px solid transparent; }
+        .card.new { background: #ecfdf3; border-left-color: #16a34a; }
         .token { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
         .muted { color: #4b5563; margin: 3px 0; }
         .empty { background: #fff; border-radius: 10px; padding: 14px; }
@@ -146,6 +147,7 @@ function parseItems(string $itemsJson): array {
         .msg { margin: 10px 0; padding: 10px; border-radius: 8px; }
         .ok { background: #dcfce7; color: #166534; }
         .err { background: #fee2e2; color: #991b1b; }
+        .auto { margin: 10px 0 0; font-size: 13px; color: #374151; }
     </style>
 </head>
 <body>
@@ -155,6 +157,7 @@ function parseItems(string $itemsJson): array {
         </div>
         <h2>Shop Orders</h2>
     </div>
+    <div class="auto">Auto-refresh is on (every 30 seconds). New orders are highlighted.</div>
 
     <div class="filters">
         <?php foreach (array_merge(['ALL'], $allowedStatuses) as $status): ?>
@@ -171,7 +174,7 @@ function parseItems(string $itemsJson): array {
         <div class="empty">No orders found for this filter.</div>
     <?php else: ?>
         <?php foreach ($orders as $order): ?>
-            <div class="card">
+            <div class="card" data-order-id="<?= (int) $order['id'] ?>">
                 <div class="token"><?= htmlspecialchars($order['token_code']) ?></div>
                 <div class="muted"><b>Shop:</b> <?= htmlspecialchars($order['shop_label']) ?></div>
                 <div class="muted"><b>Items:</b> <?= (int) $order['item_count'] ?></div>
@@ -210,5 +213,38 @@ function parseItems(string $itemsJson): array {
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
+
+    <script>
+        (function() {
+            var cards = document.querySelectorAll('.card[data-order-id]');
+            if (!cards.length) return;
+
+            var maxId = 0;
+            cards.forEach(function(card) {
+                var id = parseInt(card.getAttribute('data-order-id'), 10);
+                if (!isNaN(id) && id > maxId) maxId = id;
+            });
+
+            var storageKey = 'shop_last_seen_order_id';
+            var lastSeen = parseInt(localStorage.getItem(storageKey) || '0', 10);
+
+            if (!isNaN(lastSeen)) {
+                cards.forEach(function(card) {
+                    var id = parseInt(card.getAttribute('data-order-id'), 10);
+                    if (!isNaN(id) && id > lastSeen) {
+                        card.classList.add('new');
+                    }
+                });
+            }
+
+            if (maxId > lastSeen) {
+                localStorage.setItem(storageKey, String(maxId));
+            }
+
+            setTimeout(function() {
+                window.location.reload();
+            }, 30000);
+        })();
+    </script>
 </body>
 </html>
