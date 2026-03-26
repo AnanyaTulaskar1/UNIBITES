@@ -48,6 +48,10 @@ session_start();
         </form>
 
 
+        <p class="login-link">
+            <a href="forgot_password.php">Forgot password?</a>
+        </p>
+
         <p class="footer-text">
             © 2026 UniBites
         </p>
@@ -57,3 +61,5 @@ session_start();
 
 </body>
 </html>
+
+
