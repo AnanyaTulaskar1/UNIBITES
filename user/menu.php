@@ -20,6 +20,17 @@ $shop = $_GET['shop'] ?? '';
     'dreamland' => 'pg_shop.php',
 ];
 $backLink = $shopBackLinks[$shop] ?? 'dashboard.php';
+$shopLabels = [
+    'tiffany' => 'Tiffany',
+    'zamorin_humanities' => 'Zamorin (Humanities)',
+    'north' => 'North Delicacies',
+    'south' => 'South Delicacies',
+    'zamorin' => 'Zamorin (Admin)',
+    'shalom' => 'Shalom Cafe',
+    'heavens' => 'Heavens Kitchen',
+    'dreamland' => 'Dream Land Food Corner',
+];
+$shopHeading = $shopLabels[$shop] ?? strtoupper($shop);
     $menus = [
 
 /* ================= ADMIN BLOCK ================= */
@@ -395,7 +406,7 @@ button{
     <div class="top-nav">
         <a class="back-link" href="<?= htmlspecialchars($backLink) ?>">Back</a>
     </div>
-    <h2><?= strtoupper($shop) ?> MENU</h2>
+    <h2><?= htmlspecialchars($shopHeading) ?> MENU</h2>
 <?php if ($cart_error !== ''): ?>
 <div style="background:#fee2e2;color:#991b1b;padding:10px 12px;border-radius:8px;margin:0 12px 12px;">
     <?= htmlspecialchars($cart_error) ?>

@@ -72,6 +72,7 @@ body {
 
 <div class="shop-grid">
     <div class="shop" onclick="location.href='menu.php?shop=shalom'">
+        <img src="../assets/image/shalom.jpeg" alt="shalom">
         Shalom Cafe
     </div>
 

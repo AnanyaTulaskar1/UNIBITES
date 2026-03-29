@@ -17,6 +17,7 @@ $shopNameToKey = [
     'south' => 'south',
     'southdelicacies' => 'south',
     'zamorin' => 'zamorin',
+    'zamorinadmin' => 'zamorin',
     'tiffany' => 'tiffany',
     'zamorinhumanities' => 'zamorin_humanities',
     'shalom' => 'shalom',

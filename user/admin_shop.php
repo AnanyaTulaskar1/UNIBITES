@@ -124,7 +124,7 @@ body {
 
     <div class="shop-card" onclick="location.href='menu.php?shop=zamorin'">
         <img src="../assets/image/zamorin.jpeg" alt="Zamorin">
-        <h3>Zamorin</h3>
+        <h3>Zamorin (Admin)</h3>
     </div>
 
 </div>

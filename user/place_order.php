@@ -31,10 +31,10 @@ if ($shop === '') {
 
 $shopNames = [
     'tiffany' => 'Tiffany',
-    'zamorin_humanities' => 'Zamorin Humanities',
+    'zamorin_humanities' => 'Zamorin (Humanities)',
     'north' => 'North Delicacies',
     'south' => 'South Delicacies',
-    'zamorin' => 'Zamorin',
+    'zamorin' => 'Zamorin (Admin)',
     'shalom' => 'Shalom Cafe',
     'heavens' => 'Heavens Kitchen',
     'dreamland' => 'Dream Land Food Corner',

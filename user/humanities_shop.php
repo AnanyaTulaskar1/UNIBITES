@@ -84,7 +84,7 @@ body::before {
 
     <div class="shop" onclick="location.href='menu.php?shop=zamorin_humanities'">
         <img src="../assets/image/zamorin.jpeg">
-        <h3>Zamorin</h3>
+        <h3>Zamorin (Humanities)</h3>
     </div>
 </div>
 
