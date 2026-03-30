@@ -25,6 +25,7 @@ body::before {
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
     z-index: 0;
+    pointer-events: none;
 }
 
 /* UniBites logo watermark */
@@ -81,7 +82,7 @@ body > * {
     border-radius: 12px;
 }
 .back-link {
-    position: absolute;
+    position: fixed;
     top: 18px;
     left: 18px;
     display: inline-block;
@@ -91,6 +92,8 @@ body > * {
     text-decoration: none;
     border-radius: 8px;
     font-weight: 600;
+    z-index: 5;
+    pointer-events: auto;
 }
 </style>
 </head>

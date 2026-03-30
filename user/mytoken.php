@@ -29,25 +29,37 @@ if ($stmt) {
     <style>
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #f4f6f8 0%, #e8f4f8 100%);
             padding: 16px;
+            color: #111827;
         }
-        .top a {
+        .topbar {
+            background: linear-gradient(90deg, #924b22, #e09d44);
+            color: #fff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+        }
+        .back-link {
             text-decoration: none;
-            background: #111827;
+            background: rgba(17, 24, 39, 0.9);
             color: #fff;
             padding: 8px 12px;
             border-radius: 8px;
             display: inline-block;
-            margin-bottom: 12px;
+            font-weight: 600;
         }
         .card {
-            background: #fff;
-            border-radius: 10px;
-            padding: 14px;
+            background: #fff4e8;
+            border-radius: 14px;
+            padding: 16px;
             margin-bottom: 10px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
         }
         .token {
             font-size: 24px;
@@ -59,22 +71,29 @@ if ($stmt) {
             margin: 3px 0;
         }
         .empty {
-            background: #fff;
-            border-radius: 10px;
-            padding: 14px;
+            background: #fff4e8;
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
         }
         .auto {
             margin: 6px 0 12px;
             font-size: 12px;
             color: #6b7280;
         }
+        .title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
-    <div class="top">
-        <a href="dashboard.php">Back</a>
+    <div class="topbar">
+        <a class="back-link" href="dashboard.php">Back</a>
+        <div class="title">My Tokens</div>
+        <span></span>
     </div>
-    <h2>My Tokens</h2>
     <div class="auto">Auto-refresh is on (every 20 seconds).</div>
 
     <?php if (empty($orders)): ?>
