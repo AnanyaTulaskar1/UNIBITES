@@ -126,8 +126,8 @@ if ($shopKey !== '') {
             background-image: var(--brand-watermark);
             background-repeat: no-repeat;
             background-position: center;
-            background-size: 360px;
-            opacity: 0.12;
+            background-size: 520px;
+            opacity: 0.2;
             pointer-events: none;
             z-index: -1;
         }
