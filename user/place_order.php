@@ -127,6 +127,21 @@ $_SESSION['last_order_id'] = $orderId;
 $_SESSION['last_token'] = $tokenCode;
 $_SESSION['cart'] = [];
 unset($_SESSION['cart_shop']);
+
+$orderStatus = 'PLACED';
+$orderTime = '';
+$stmtStatus = mysqli_prepare($conn, "SELECT status, created_at FROM orders WHERE id = ? AND user_id = ?");
+if ($stmtStatus) {
+    $uid = (int) $_SESSION['user_id'];
+    mysqli_stmt_bind_param($stmtStatus, "ii", $orderId, $uid);
+    mysqli_stmt_execute($stmtStatus);
+    $statusResult = mysqli_stmt_get_result($stmtStatus);
+    if ($statusRow = mysqli_fetch_assoc($statusResult)) {
+        $orderStatus = (string) ($statusRow['status'] ?? $orderStatus);
+        $orderTime = (string) ($statusRow['created_at'] ?? '');
+    }
+    mysqli_stmt_close($stmtStatus);
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -168,6 +183,11 @@ unset($_SESSION['cart_shop']);
             padding: 8px 12px;
             border-radius: 8px;
         }
+        .auto {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #6b7280;
+        }
     </style>
 </head>
 <body>
@@ -177,10 +197,20 @@ unset($_SESSION['cart_shop']);
         <div class="row"><b>Shop:</b> <?= htmlspecialchars($shopLabel) ?></div>
         <div class="row"><b>Items:</b> <?= (int) $itemCount ?></div>
         <div class="row"><b>Total:</b> Rs <?= (int) $total ?></div>
+        <div class="row"><b>Status:</b> <?= htmlspecialchars($orderStatus) ?></div>
+        <?php if ($orderTime !== ''): ?>
+            <div class="row"><b>Time:</b> <?= htmlspecialchars($orderTime) ?></div>
+        <?php endif; ?>
+        <div class="auto">Auto-refresh is on (every 20 seconds).</div>
         <div class="links">
             <a href="mytoken.php">View My Tokens</a>
             <a href="dashboard.php">Back to Home</a>
         </div>
     </div>
+    <script>
+        setTimeout(function() {
+            window.location.reload();
+        }, 20000);
+    </script>
 </body>
 </html>

@@ -4,6 +4,10 @@
 <head>
 <title>Humanities Canteen</title>
 <style>
+:root {
+    /* Set this later to: url('../assets/image/your-logo.png') */
+    --brand-watermark: none;
+}
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -11,6 +15,7 @@ body {
     /* ✅ Food Background */
     background: url('../assets/image/humanbg.jpg') no-repeat center center fixed;
     background-size: cover;
+    position: relative;
 }
 
 /* Optional dark overlay for better visibility */
@@ -19,7 +24,26 @@ body::before {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
-    z-index: -1;
+    z-index: 0;
+}
+
+/* UniBites logo watermark */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: var(--brand-watermark);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 320px;
+    opacity: 0.12;
+    z-index: 1;
+    pointer-events: none;
+}
+
+body > * {
+    position: relative;
+    z-index: 2;
 }
 .title {
     text-align: center;

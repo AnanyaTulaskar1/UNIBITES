@@ -63,6 +63,11 @@ if ($stmt) {
             border-radius: 10px;
             padding: 14px;
         }
+        .auto {
+            margin: 6px 0 12px;
+            font-size: 12px;
+            color: #6b7280;
+        }
     </style>
 </head>
 <body>
@@ -70,6 +75,7 @@ if ($stmt) {
         <a href="dashboard.php">Back</a>
     </div>
     <h2>My Tokens</h2>
+    <div class="auto">Auto-refresh is on (every 20 seconds).</div>
 
     <?php if (empty($orders)): ?>
         <div class="empty">No orders yet.</div>
@@ -85,5 +91,10 @@ if ($stmt) {
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
+    <script>
+        setTimeout(function() {
+            window.location.reload();
+        }, 20000);
+    </script>
 </body>
 </html>
