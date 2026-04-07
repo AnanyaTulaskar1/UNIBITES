@@ -16,6 +16,7 @@ function ensure_orders_schema(mysqli $conn): void {
         payment_method VARCHAR(20) NOT NULL DEFAULT 'UPI',
         payment_status VARCHAR(20) NOT NULL DEFAULT 'PAID',
         receipt_no VARCHAR(40) NOT NULL DEFAULT '',
+        payment_ref VARCHAR(60) NOT NULL DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_shop_token (shop_key, token_no),
         INDEX idx_user (user_id)
@@ -40,6 +41,9 @@ function ensure_orders_schema(mysqli $conn): void {
     }
     if (!isset($columns['receipt_no'])) {
         $alter[] = "ADD COLUMN receipt_no VARCHAR(40) NOT NULL DEFAULT ''";
+    }
+    if (!isset($columns['payment_ref'])) {
+        $alter[] = "ADD COLUMN payment_ref VARCHAR(60) NOT NULL DEFAULT ''";
     }
 
     if (!empty($alter)) {

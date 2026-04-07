@@ -42,13 +42,13 @@ if ($filterStatus !== 'ALL' && !in_array($filterStatus, $allowedStatuses, true))
 $orders = [];
 if ($shopKey !== '') {
     if ($filterStatus === 'ALL') {
-        $sql = "SELECT id, token_code, shop_label, item_count, total_amount, status, payment_method, payment_status, receipt_no, created_at, items_json FROM orders WHERE shop_key = ? ORDER BY id DESC";
+        $sql = "SELECT id, token_code, shop_label, item_count, total_amount, status, payment_method, payment_status, receipt_no, payment_ref, created_at, items_json FROM orders WHERE shop_key = ? ORDER BY id DESC";
         $stmt = mysqli_prepare($conn, $sql);
         if ($stmt) {
             mysqli_stmt_bind_param($stmt, "s", $shopKey);
         }
     } else {
-        $sql = "SELECT id, token_code, shop_label, item_count, total_amount, status, payment_method, payment_status, receipt_no, created_at, items_json FROM orders WHERE shop_key = ? AND status = ? ORDER BY id DESC";
+        $sql = "SELECT id, token_code, shop_label, item_count, total_amount, status, payment_method, payment_status, receipt_no, payment_ref, created_at, items_json FROM orders WHERE shop_key = ? AND status = ? ORDER BY id DESC";
         $stmt = mysqli_prepare($conn, $sql);
         if ($stmt) {
             mysqli_stmt_bind_param($stmt, "ss", $shopKey, $filterStatus);
@@ -130,6 +130,9 @@ function parseItems(string $itemsJson): array {
                 <div class="muted"><b>Payment:</b> <?= htmlspecialchars(($order['payment_method'] ?? 'UPI') . ' - ' . ($order['payment_status'] ?? 'PAID')) ?></div>
                 <?php if (!empty($order['receipt_no'])): ?>
                     <div class="muted"><b>Receipt:</b> <?= htmlspecialchars($order['receipt_no']) ?></div>
+                <?php endif; ?>
+                <?php if (!empty($order['payment_ref'])): ?>
+                    <div class="muted"><b>UPI Ref:</b> <?= htmlspecialchars($order['payment_ref']) ?></div>
                 <?php endif; ?>
                 <div class="muted"><b>Time:</b> <?= htmlspecialchars($order['created_at']) ?></div>
 

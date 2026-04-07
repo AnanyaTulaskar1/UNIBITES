@@ -134,6 +134,38 @@ h2 {
     font-weight: 700;
 }
 
+.payment-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
+
+.payment-card h4 {
+    margin: 0 0 8px;
+}
+
+.payment-card label {
+    display: block;
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 8px;
+}
+
+.payment-card input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    margin-top: 4px;
+}
+
+.payment-card .upi-id {
+    font-weight: 700;
+    color: #111827;
+}
+
 .nav-row form {
     margin: 0;
 }
@@ -174,12 +206,20 @@ h2 {
     </div>
 <?php endforeach; ?>
 
-    <div class="pay-bar">
-        <div><?= $count ?> Item(s) | Total Bill: Rs <?= $total ?></div>
-        <form action="place_order.php" method="post">
-        <button type="submit">Pay via UPI Rs <?= $total ?></button>
-        </form>
-    </div>
+    <form action="place_order.php" method="post">
+        <div class="payment-card">
+            <h4>Payment Method: UPI</h4>
+            <div>Pay to UPI ID: <span class="upi-id">unibites@upi</span></div>
+            <label for="payment_ref">UPI Transaction ID (optional)</label>
+            <input id="payment_ref" name="payment_ref" type="text" maxlength="60" placeholder="Example: 1234567890">
+            <input type="hidden" name="payment_method" value="UPI">
+        </div>
+
+        <div class="pay-bar">
+            <div><?= $count ?> Item(s) | Total Bill: Rs <?= $total ?></div>
+            <button type="submit">Pay via UPI Rs <?= $total ?></button>
+        </div>
+    </form>
 <?php endif; ?>
 
 </body>

@@ -83,6 +83,44 @@ if (!empty($stmt)) {
 uasort($sales, function(array $a, array $b): int {
     return ($b['qty'] ?? 0) <=> ($a['qty'] ?? 0);
 });
+
+$export = (string) ($_GET['export'] ?? '');
+if ($export === 'products_csv' || $export === 'shop_csv') {
+    $rangeLabel = $mode === 'monthly' ? $monthInput : $dateInput;
+    $filename = 'sales_' . $rangeLabel . '_' . ($export === 'products_csv' ? 'products' : 'shopwise') . '.csv';
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    $out = fopen('php://output', 'w');
+    if ($out !== false) {
+        if ($export === 'products_csv') {
+            fputcsv($out, ['Item', 'Quantity', 'Revenue']);
+            foreach ($sales as $name => $data) {
+                fputcsv($out, [
+                    (string) $name,
+                    (int) ($data['qty'] ?? 0),
+                    number_format((float) ($data['revenue'] ?? 0), 2, '.', '')
+                ]);
+            }
+        } else {
+            fputcsv($out, ['Shop', 'Item', 'Quantity']);
+            foreach ($salesByShop as $shopLabel => $items) {
+                foreach ($items as $name => $qty) {
+                    fputcsv($out, [
+                        (string) $shopLabel,
+                        (string) $name,
+                        (int) $qty
+                    ]);
+                }
+            }
+        }
+        fclose($out);
+    }
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -93,6 +131,8 @@ uasort($sales, function(array $a, array $b): int {
         body { margin: 0; font-family: Arial, sans-serif; background: #f5f5f5; padding: 18px; }
         .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
         .top a { text-decoration: none; background: #111827; color: #fff; padding: 8px 12px; border-radius: 8px; display: inline-block; }
+        .btn { text-decoration: none; background: #111827; color: #fff; padding: 8px 12px; border-radius: 8px; display: inline-block; border: none; cursor: pointer; }
+        .btn.secondary { background: #374151; }
         .card { background: #fff; border-radius: 10px; padding: 14px; margin-top: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
         table { width: 100%; border-collapse: collapse; margin-top: 8px; }
         th, td { padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: left; }
@@ -135,6 +175,10 @@ uasort($sales, function(array $a, array $b): int {
             </div>
             <button type="submit">Apply</button>
         </form>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+            <a class="btn" href="?mode=<?= htmlspecialchars($mode) ?>&date=<?= htmlspecialchars($dateInput) ?>&month=<?= htmlspecialchars($monthInput) ?>&export=products_csv">Download Products (CSV)</a>
+            <a class="btn secondary" href="?mode=<?= htmlspecialchars($mode) ?>&date=<?= htmlspecialchars($dateInput) ?>&month=<?= htmlspecialchars($monthInput) ?>&export=shop_csv">Download Shop-wise (CSV)</a>
+        </div>
         <div class="muted">Current range: <?= htmlspecialchars($startDate) ?> to <?= htmlspecialchars(date('Y-m-d', strtotime($endDate . ' -1 day'))) ?></div>
     </div>
 

@@ -18,7 +18,7 @@ if (!in_array($statusFilter, $allowedStatuses, true)) {
 }
 
 $orders = [];
-$sql = "SELECT id, user_id, shop_label, token_code, item_count, total_amount, status, payment_method, payment_status, receipt_no, created_at 
+$sql = "SELECT id, user_id, shop_label, token_code, item_count, total_amount, status, payment_method, payment_status, receipt_no, payment_ref, created_at 
         FROM orders";
 if ($statusFilter !== 'ALL') {
     $sql .= " WHERE status = ?";
@@ -83,10 +83,12 @@ if ($stmt) {
                 <?php if (!empty($order['receipt_no'])): ?>
                     <div class="row"><b>Receipt:</b> <?= htmlspecialchars((string) $order['receipt_no']) ?></div>
                 <?php endif; ?>
+                <?php if (!empty($order['payment_ref'])): ?>
+                    <div class="row"><b>UPI Ref:</b> <?= htmlspecialchars((string) $order['payment_ref']) ?></div>
+                <?php endif; ?>
                 <div class="row"><b>Time:</b> <?= htmlspecialchars((string) $order['created_at']) ?></div>
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
 </body>
 </html>
-

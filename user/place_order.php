@@ -111,10 +111,17 @@ try {
     $tokenCode = $tokenPrefix . "-" . str_pad((string) $tokenNo, 3, "0", STR_PAD_LEFT);
     $itemsJson = json_encode($items, JSON_UNESCAPED_UNICODE);
     $userId = (int) $_SESSION['user_id'];
-    $totalAmount = number_format($total, 2, '.', '');
+$totalAmount = number_format($total, 2, '.', '');
+$paymentMethod = strtoupper(trim((string) ($_POST['payment_method'] ?? 'UPI')));
+if ($paymentMethod !== 'UPI') {
     $paymentMethod = 'UPI';
-    $paymentStatus = 'PAID';
-    $receiptNo = 'RCT-' . $tokenCode;
+}
+$paymentStatus = 'PAID';
+$receiptNo = 'RCT-' . $tokenCode;
+$paymentRef = trim((string) ($_POST['payment_ref'] ?? ''));
+if ($paymentRef !== '') {
+    $paymentRef = substr($paymentRef, 0, 60);
+}
     $orderStatus = 'READY';
     foreach ($cart as $cartItem) {
         if ((int) ($cartItem['auto_ready'] ?? 1) !== 1) {
@@ -123,13 +130,13 @@ try {
         }
     }
 
-    $insertSql = "INSERT INTO orders (user_id, shop_key, shop_label, token_no, token_code, items_json, item_count, total_amount, status, payment_method, payment_status, receipt_no)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $insertSql = "INSERT INTO orders (user_id, shop_key, shop_label, token_no, token_code, items_json, item_count, total_amount, status, payment_method, payment_status, receipt_no, payment_ref)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmtInsert = mysqli_prepare($conn, $insertSql);
     if (!$stmtInsert) {
         throw new Exception(mysqli_error($conn));
     }
-    mysqli_stmt_bind_param($stmtInsert, "ississidssss", $userId, $shop, $shopLabel, $tokenNo, $tokenCode, $itemsJson, $itemCount, $totalAmount, $orderStatus, $paymentMethod, $paymentStatus, $receiptNo);
+    mysqli_stmt_bind_param($stmtInsert, "ississidsssss", $userId, $shop, $shopLabel, $tokenNo, $tokenCode, $itemsJson, $itemCount, $totalAmount, $orderStatus, $paymentMethod, $paymentStatus, $receiptNo, $paymentRef);
     mysqli_stmt_execute($stmtInsert);
     $orderId = mysqli_insert_id($conn);
     mysqli_stmt_close($stmtInsert);
@@ -149,8 +156,9 @@ $orderStatus = 'PLACED';
 $paymentMethodOut = 'UPI';
 $paymentStatusOut = 'PAID';
 $receiptNoOut = '';
+$paymentRefOut = '';
 $orderTime = '';
-$stmtStatus = mysqli_prepare($conn, "SELECT status, payment_method, payment_status, receipt_no, created_at FROM orders WHERE id = ? AND user_id = ?");
+$stmtStatus = mysqli_prepare($conn, "SELECT status, payment_method, payment_status, receipt_no, payment_ref, created_at FROM orders WHERE id = ? AND user_id = ?");
 if ($stmtStatus) {
     $uid = (int) $_SESSION['user_id'];
     mysqli_stmt_bind_param($stmtStatus, "ii", $orderId, $uid);
@@ -161,6 +169,7 @@ if ($stmtStatus) {
         $paymentMethodOut = (string) ($statusRow['payment_method'] ?? $paymentMethodOut);
         $paymentStatusOut = (string) ($statusRow['payment_status'] ?? $paymentStatusOut);
         $receiptNoOut = (string) ($statusRow['receipt_no'] ?? $receiptNoOut);
+        $paymentRefOut = (string) ($statusRow['payment_ref'] ?? $paymentRefOut);
         $orderTime = (string) ($statusRow['created_at'] ?? '');
     }
     mysqli_stmt_close($stmtStatus);
@@ -223,6 +232,9 @@ if ($stmtStatus) {
         <div class="row"><b>Payment:</b> <?= htmlspecialchars($paymentMethodOut . ' - ' . $paymentStatusOut) ?></div>
         <?php if ($receiptNoOut !== ''): ?>
             <div class="row"><b>Receipt:</b> <?= htmlspecialchars($receiptNoOut) ?></div>
+        <?php endif; ?>
+        <?php if ($paymentRefOut !== ''): ?>
+            <div class="row"><b>UPI Ref:</b> <?= htmlspecialchars($paymentRefOut) ?></div>
         <?php endif; ?>
         <div class="row"><b>Status:</b> <?= htmlspecialchars($orderStatus) ?></div>
         <?php if ($orderTime !== ''): ?>
