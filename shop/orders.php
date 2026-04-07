@@ -1,29 +1,14 @@
 ﻿<?php
 session_start();
 require "../config/db.php";
+require "../config/schema.php";
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'shop') {
     header("Location: ../login.php");
     exit();
 }
 
-$createOrdersSql = "
-CREATE TABLE IF NOT EXISTS orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    shop_key VARCHAR(64) NOT NULL,
-    shop_label VARCHAR(120) NOT NULL,
-    token_no INT NOT NULL,
-    token_code VARCHAR(40) NOT NULL,
-    items_json LONGTEXT NOT NULL,
-    item_count INT NOT NULL,
-    total_amount DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'PLACED',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_shop_token (shop_key, token_no),
-    INDEX idx_user (user_id)
-)";
-mysqli_query($conn, $createOrdersSql);
+ensure_orders_schema($conn);
 
 $shopName = trim((string) ($_SESSION['shop_name'] ?? $_SESSION['name'] ?? ''));
 $shopKeyRaw = strtolower($shopName);
@@ -49,42 +34,6 @@ $shopNameToKey = [
 $shopKey = $shopNameToKey[$shopKeyClean] ?? ($shopNameToKey[$shopKeyRaw] ?? '');
 $allowedStatuses = ['PLACED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED'];
 
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(16));
-}
-
-$message = '';
-$error = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['new_status'], $_POST['csrf_token'])) {
-    $orderId = (int) $_POST['order_id'];
-    $newStatus = strtoupper(trim((string) $_POST['new_status']));
-    $csrf = (string) $_POST['csrf_token'];
-
-    if (!hash_equals($_SESSION['csrf_token'], $csrf)) {
-        $error = 'Invalid request token. Please refresh and try again.';
-    } elseif ($shopKey === '') {
-        $error = 'Shop mapping not found for this account.';
-    } elseif (!in_array($newStatus, $allowedStatuses, true)) {
-        $error = 'Invalid status selected.';
-    } else {
-        $sqlUpdate = "UPDATE orders SET status = ? WHERE id = ? AND shop_key = ?";
-        $stmtUpdate = mysqli_prepare($conn, $sqlUpdate);
-        if ($stmtUpdate) {
-            mysqli_stmt_bind_param($stmtUpdate, "sis", $newStatus, $orderId, $shopKey);
-            mysqli_stmt_execute($stmtUpdate);
-            if (mysqli_stmt_affected_rows($stmtUpdate) > 0) {
-                $message = 'Order status updated successfully.';
-            } else {
-                $error = 'No matching order found or status unchanged.';
-            }
-            mysqli_stmt_close($stmtUpdate);
-        } else {
-            $error = 'Failed to update order status.';
-        }
-    }
-}
-
 $filterStatus = strtoupper(trim((string) ($_GET['status'] ?? 'ALL')));
 if ($filterStatus !== 'ALL' && !in_array($filterStatus, $allowedStatuses, true)) {
     $filterStatus = 'ALL';
@@ -93,13 +42,13 @@ if ($filterStatus !== 'ALL' && !in_array($filterStatus, $allowedStatuses, true))
 $orders = [];
 if ($shopKey !== '') {
     if ($filterStatus === 'ALL') {
-        $sql = "SELECT id, token_code, shop_label, item_count, total_amount, status, created_at, items_json FROM orders WHERE shop_key = ? ORDER BY id DESC";
+        $sql = "SELECT id, token_code, shop_label, item_count, total_amount, status, payment_method, payment_status, receipt_no, created_at, items_json FROM orders WHERE shop_key = ? ORDER BY id DESC";
         $stmt = mysqli_prepare($conn, $sql);
         if ($stmt) {
             mysqli_stmt_bind_param($stmt, "s", $shopKey);
         }
     } else {
-        $sql = "SELECT id, token_code, shop_label, item_count, total_amount, status, created_at, items_json FROM orders WHERE shop_key = ? AND status = ? ORDER BY id DESC";
+        $sql = "SELECT id, token_code, shop_label, item_count, total_amount, status, payment_method, payment_status, receipt_no, created_at, items_json FROM orders WHERE shop_key = ? AND status = ? ORDER BY id DESC";
         $stmt = mysqli_prepare($conn, $sql);
         if ($stmt) {
             mysqli_stmt_bind_param($stmt, "ss", $shopKey, $filterStatus);
@@ -158,16 +107,13 @@ function parseItems(string $itemsJson): array {
         </div>
         <h2>Shop Orders</h2>
     </div>
-    <div class="auto">Auto-refresh is on (every 30 seconds). New orders are highlighted.</div>
+    <div class="auto">Auto-refresh is on (every 30 seconds). Orders are auto-marked ready after payment.</div>
 
     <div class="filters">
         <?php foreach (array_merge(['ALL'], $allowedStatuses) as $status): ?>
             <a class="<?= $filterStatus === $status ? 'active' : '' ?>" href="orders.php?status=<?= urlencode($status) ?>"><?= htmlspecialchars($status) ?></a>
         <?php endforeach; ?>
     </div>
-
-    <?php if ($message !== ''): ?><div class="msg ok"><?= htmlspecialchars($message) ?></div><?php endif; ?>
-    <?php if ($error !== ''): ?><div class="msg err"><?= htmlspecialchars($error) ?></div><?php endif; ?>
 
     <?php if ($shopKey === ''): ?>
         <div class="empty">Shop mapping not found for this account. Use shop account name like north/south/tiffany/shalom.</div>
@@ -181,6 +127,10 @@ function parseItems(string $itemsJson): array {
                 <div class="muted"><b>Items:</b> <?= (int) $order['item_count'] ?></div>
                 <div class="muted"><b>Total:</b> Rs <?= number_format((float) $order['total_amount'], 2) ?></div>
                 <div class="muted"><b>Status:</b> <?= htmlspecialchars($order['status']) ?></div>
+                <div class="muted"><b>Payment:</b> <?= htmlspecialchars(($order['payment_method'] ?? 'UPI') . ' - ' . ($order['payment_status'] ?? 'PAID')) ?></div>
+                <?php if (!empty($order['receipt_no'])): ?>
+                    <div class="muted"><b>Receipt:</b> <?= htmlspecialchars($order['receipt_no']) ?></div>
+                <?php endif; ?>
                 <div class="muted"><b>Time:</b> <?= htmlspecialchars($order['created_at']) ?></div>
 
                 <?php $items = parseItems((string) $order['items_json']); ?>
@@ -199,18 +149,6 @@ function parseItems(string $itemsJson): array {
                     </div>
                 <?php endif; ?>
 
-                <form class="status-form" method="post" action="orders.php<?= $filterStatus !== 'ALL' ? '?status=' . urlencode($filterStatus) : '' ?>">
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                    <input type="hidden" name="order_id" value="<?= (int) $order['id'] ?>">
-                    <select name="new_status" required>
-                        <?php foreach ($allowedStatuses as $status): ?>
-                            <option value="<?= htmlspecialchars($status) ?>" <?= strtoupper((string) $order['status']) === $status ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($status) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="submit">Update Status</button>
-                </form>
             </div>
         <?php endforeach; ?>
     <?php endif; ?>

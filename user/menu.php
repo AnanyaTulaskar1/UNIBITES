@@ -1,5 +1,9 @@
 <?php
 session_start();
+require "../config/db.php";
+require "../config/schema.php";
+
+date_default_timezone_set('Asia/Kolkata');
 
 if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
@@ -245,8 +249,85 @@ $shopHeading = $shopLabels[$shop] ?? strtoupper($shop);
     ["name"=>"Zamorin Special","price"=>80,"image"=>"assets/food/milkshake3.jpg"],
     ],
     ];
-$menu = $menus[$shop] ?? [];
+$menu = [];
 $cart_error = '';
+
+ensure_menu_items_schema($conn);
+
+function seed_menu_items(mysqli $conn, string $shopKey, array $seedItems): void {
+    if ($shopKey === '' || empty($seedItems)) {
+        return;
+    }
+
+    $stmtCheck = mysqli_prepare($conn, "SELECT COUNT(*) AS cnt FROM menu_items WHERE shop_key = ?");
+    if (!$stmtCheck) {
+        return;
+    }
+    mysqli_stmt_bind_param($stmtCheck, "s", $shopKey);
+    mysqli_stmt_execute($stmtCheck);
+    $result = mysqli_stmt_get_result($stmtCheck);
+    $row = $result ? mysqli_fetch_assoc($result) : null;
+    mysqli_stmt_close($stmtCheck);
+
+    if (($row['cnt'] ?? 0) > 0) {
+        return;
+    }
+
+    $stmtInsert = mysqli_prepare($conn, "INSERT INTO menu_items (shop_key, name, price, image, is_available, available_from, available_to, quality_note, auto_ready, is_seeded) VALUES (?, ?, ?, ?, 1, NULL, NULL, '', 1, 1)");
+    if (!$stmtInsert) {
+        return;
+    }
+    foreach ($seedItems as $item) {
+        $name = (string) ($item['name'] ?? '');
+        $price = (float) ($item['price'] ?? 0);
+        $image = (string) ($item['image'] ?? '');
+        if ($name === '' || $image === '') {
+            continue;
+        }
+        mysqli_stmt_bind_param($stmtInsert, "ssds", $shopKey, $name, $price, $image);
+        mysqli_stmt_execute($stmtInsert);
+    }
+    mysqli_stmt_close($stmtInsert);
+}
+
+if (!empty($shop)) {
+    seed_menu_items($conn, $shop, $menus[$shop] ?? []);
+}
+
+function time_to_seconds(?string $timeValue): ?int {
+    if ($timeValue === null || $timeValue === '') {
+        return null;
+    }
+    $parts = explode(':', $timeValue);
+    $h = isset($parts[0]) ? (int) $parts[0] : 0;
+    $m = isset($parts[1]) ? (int) $parts[1] : 0;
+    $s = isset($parts[2]) ? (int) $parts[2] : 0;
+    return ($h * 3600) + ($m * 60) + $s;
+}
+
+function is_within_window(?string $fromTime, ?string $toTime, int $nowSeconds): bool {
+    $fromSec = time_to_seconds($fromTime);
+    $toSec = time_to_seconds($toTime);
+
+    if ($fromSec === null && $toSec === null) {
+        return true;
+    }
+    if ($fromSec !== null && $toSec === null) {
+        return $nowSeconds >= $fromSec;
+    }
+    if ($fromSec === null && $toSec !== null) {
+        return $nowSeconds <= $toSec;
+    }
+    if ($fromSec <= $toSec) {
+        return $nowSeconds >= $fromSec && $nowSeconds <= $toSec;
+    }
+    return ($nowSeconds >= $fromSec) || ($nowSeconds <= $toSec);
+}
+
+$nowSeconds = ((int) date('H') * 3600) + ((int) date('i') * 60) + (int) date('s');
+
+// Show the original fixed menu on this page.
+$menu = $menus[$shop] ?? [];
 /* ADD / REMOVE CART */
 if (isset($_POST['action'], $_POST['id'])) {
 
@@ -258,8 +339,12 @@ if (isset($_POST['action'], $_POST['id'])) {
     $cart_key = $shop . '_' . $id;
 
     if ($_POST['action'] === "add" && $item !== null) {
+        $itemAvailable = ((int) ($item['is_available'] ?? 1)) === 1
+            && is_within_window($item['available_from'] ?? null, $item['available_to'] ?? null, $nowSeconds);
         $active_shop = $_SESSION['cart_shop'] ?? null;
-        if (!empty($_SESSION['cart']) && $active_shop !== null && $active_shop !== $shop) {
+        if (!$itemAvailable) {
+            $cart_error = "This item is not available right now. Please check the timing.";
+        } elseif (!empty($_SESSION['cart']) && $active_shop !== null && $active_shop !== $shop) {
             $cart_error = "You can order from only one shop at a time. Clear cart to change shop.";
         } else {
             $_SESSION['cart_shop'] = $shop;
@@ -269,9 +354,11 @@ if (isset($_POST['action'], $_POST['id'])) {
             } else {
                 $_SESSION['cart'][$cart_key] = [
                     'shop' => $shop,
+                    'item_id' => (int) ($item['id'] ?? $id),
                     'name' => $item['name'],
                     'price' => $item['price'],
-                    'qty' => 1
+                    'qty' => 1,
+                    'auto_ready' => (int) ($item['auto_ready'] ?? 1)
                 ];
             }
         }
@@ -405,6 +492,9 @@ button{
 <body>
     <div class="top-nav">
         <a class="back-link" href="<?= htmlspecialchars($backLink) ?>">Back</a>
+        <?php if (!empty($shop)): ?>
+            <a class="back-link" style="margin-left:8px;background:#2563eb;" href="new_items.php?shop=<?= urlencode($shop) ?>">New Items</a>
+        <?php endif; ?>
     </div>
     <h2><?= htmlspecialchars($shopHeading) ?> MENU</h2>
 <?php if ($cart_error !== ''): ?>
@@ -412,21 +502,50 @@ button{
     <?= htmlspecialchars($cart_error) ?>
 </div>
 <?php endif; ?>
+<div style="font-size:12px;color:#6b7280;margin:0 12px 12px;">
+    Menu updates automatically when the shop adds new items (refresh every 30 seconds).
+</div>
 
 <div class="grid">
+<?php if (empty($menu)): ?>
+    <div class="card">Menu not available right now.</div>
+<?php else: ?>
 <?php foreach($menu as $id => $item):
   $cart_key = $shop . '_' . $id;
   $qty = isset($_SESSION['cart'][$cart_key])
      ? $_SESSION['cart'][$cart_key]['qty']
      : 0;
+  $availableNow = ((int) ($item['is_available'] ?? 1)) === 1
+      && is_within_window($item['available_from'] ?? null, $item['available_to'] ?? null, $nowSeconds);
+  $timingLabel = '';
+  if (!empty($item['available_from']) || !empty($item['available_to'])) {
+      $fromLabel = $item['available_from'] ? substr((string) $item['available_from'], 0, 5) : '--:--';
+      $toLabel = $item['available_to'] ? substr((string) $item['available_to'], 0, 5) : '--:--';
+      $timingLabel = $fromLabel . " - " . $toLabel;
+  }
 ?>
 
 <div class="food-card">
-    <img src="../<?= $item['image'] ?>" alt="<?= $item['name'] ?>">
+    <img src="../<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
 
     <div class="food-info">
-        <h4><?= $item['name'] ?></h4>
+        <h4><?= htmlspecialchars($item['name']) ?></h4>
         <p>₹<?= $item['price'] ?></p>
+        <?php if (!empty($item['quality_note'])): ?>
+            <div style="font-size:12px;color:#374151;margin-bottom:4px;">
+                Quality: <?= htmlspecialchars($item['quality_note']) ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($timingLabel !== ''): ?>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px;">
+                Timing: <?= htmlspecialchars($timingLabel) ?>
+            </div>
+        <?php endif; ?>
+        <?php if (!$availableNow): ?>
+            <div style="font-size:12px;color:#b91c1c;margin-bottom:6px;">
+                Not available right now
+            </div>
+        <?php endif; ?>
 
         <form method="post">
             <input type="hidden" name="id" value="<?= $id ?>">
@@ -438,14 +557,15 @@ button{
                     border:none;
                     padding:8px 16px;
                     border-radius:8px;
-                    font-weight:bold;">
+                    font-weight:bold;"
+                    <?= !$availableNow ? 'disabled' : '' ?>>
                     ADD
                 </button>
               <?php else: ?>
             <div class="qty-box">
                  <button type="submit" name="action" value="remove">−</button>
                 <span><?= $qty ?></span>
-                <button type="submit" name="action" value="add">+</button>
+                <button type="submit" name="action" value="add" <?= !$availableNow ? 'disabled' : '' ?>>+</button>
             </div>
             <?php endif; ?>
 
@@ -453,6 +573,7 @@ button{
     </div>
 </div>
 <?php endforeach; ?>
+<?php endif; ?>
 <?php if ($total_items > 0): ?>
 <div style="
     position:fixed;
@@ -477,4 +598,9 @@ button{
 
 
 </body>
+<script>
+    setTimeout(function() {
+        window.location.reload();
+    }, 30000);
+</script>
 </html>

@@ -1,0 +1,63 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <rect width="1400" height="900" fill="#ffffff"/>
+  <text x="700" y="50" text-anchor="middle" font-family="Arial" font-size="28" fill="#111">ER Diagram (Complete System)</text>
+
+  <rect x="70" y="120" width="300" height="220" rx="12" fill="#f0f4ff" stroke="#4a67d6" stroke-width="2"/>
+  <text x="220" y="155" text-anchor="middle" font-family="Arial" font-size="18" fill="#111">Users</text>
+  <text x="90" y="185" font-family="Arial" font-size="14" fill="#333">- id (PK)</text>
+  <text x="90" y="210" font-family="Arial" font-size="14" fill="#333">- name</text>
+  <text x="90" y="235" font-family="Arial" font-size="14" fill="#333">- email</text>
+  <text x="90" y="260" font-family="Arial" font-size="14" fill="#333">- password</text>
+  <text x="90" y="285" font-family="Arial" font-size="14" fill="#333">- role</text>
+  <text x="90" y="310" font-family="Arial" font-size="14" fill="#333">- status</text>
+
+  <rect x="520" y="90" width="320" height="260" rx="12" fill="#fff3e8" stroke="#d6792c" stroke-width="2"/>
+  <text x="680" y="125" text-anchor="middle" font-family="Arial" font-size="18" fill="#111">Orders</text>
+  <text x="540" y="155" font-family="Arial" font-size="14" fill="#333">- id (PK)</text>
+  <text x="540" y="180" font-family="Arial" font-size="14" fill="#333">- user_id (FK)</text>
+  <text x="540" y="205" font-family="Arial" font-size="14" fill="#333">- shop_key</text>
+  <text x="540" y="230" font-family="Arial" font-size="14" fill="#333">- shop_label</text>
+  <text x="540" y="255" font-family="Arial" font-size="14" fill="#333">- token_code</text>
+  <text x="540" y="280" font-family="Arial" font-size="14" fill="#333">- status</text>
+  <text x="540" y="305" font-family="Arial" font-size="14" fill="#333">- total_amount</text>
+  <text x="540" y="330" font-family="Arial" font-size="14" fill="#333">- created_at</text>
+
+  <rect x="1030" y="120" width="300" height="220" rx="12" fill="#e9f8ef" stroke="#2f9e5a" stroke-width="2"/>
+  <text x="1180" y="155" text-anchor="middle" font-family="Arial" font-size="18" fill="#111">Order_Items</text>
+  <text x="1050" y="185" font-family="Arial" font-size="14" fill="#333">- id (PK)</text>
+  <text x="1050" y="210" font-family="Arial" font-size="14" fill="#333">- order_id (FK)</text>
+  <text x="1050" y="235" font-family="Arial" font-size="14" fill="#333">- item_name</text>
+  <text x="1050" y="260" font-family="Arial" font-size="14" fill="#333">- qty</text>
+  <text x="1050" y="285" font-family="Arial" font-size="14" fill="#333">- price</text>
+
+  <rect x="520" y="430" width="320" height="180" rx="12" fill="#f5f0ff" stroke="#6b4cd6" stroke-width="2"/>
+  <text x="680" y="465" text-anchor="middle" font-family="Arial" font-size="18" fill="#111">User_Tokens</text>
+  <text x="540" y="495" font-family="Arial" font-size="14" fill="#333">- id (PK)</text>
+  <text x="540" y="520" font-family="Arial" font-size="14" fill="#333">- user_id (FK)</text>
+  <text x="540" y="545" font-family="Arial" font-size="14" fill="#333">- token_code</text>
+  <text x="540" y="570" font-family="Arial" font-size="14" fill="#333">- status</text>
+
+  <rect x="70" y="430" width="300" height="180" rx="12" fill="#ffeef0" stroke="#d6455d" stroke-width="2"/>
+  <text x="220" y="465" text-anchor="middle" font-family="Arial" font-size="18" fill="#111">Shops</text>
+  <text x="90" y="495" font-family="Arial" font-size="14" fill="#333">- shop_key (PK)</text>
+  <text x="90" y="520" font-family="Arial" font-size="14" fill="#333">- shop_name</text>
+  <text x="90" y="545" font-family="Arial" font-size="14" fill="#333">- location</text>
+
+  <line x1="370" y1="230" x2="520" y2="230" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="840" y1="230" x2="1030" y2="230" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="680" y1="350" x2="680" y2="430" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="370" y1="510" x2="520" y2="510" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="220" y1="340" x2="220" y2="430" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="370" y1="510" x2="520" y2="250" stroke="#999" stroke-width="1.5" stroke-dasharray="6 6"/>
+
+  <text x="445" y="215" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">1 to many</text>
+  <text x="935" y="215" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">1 to many</text>
+  <text x="700" y="405" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">1 to many</text>
+  <text x="445" y="495" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">1 to many</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0,0 12,4 0,8" fill="#333" />
+    </marker>
+  </defs>
+</svg>

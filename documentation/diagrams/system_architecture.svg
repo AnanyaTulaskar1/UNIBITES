@@ -1,0 +1,29 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#ffffff"/>
+  <text x="600" y="50" text-anchor="middle" font-family="Arial" font-size="28" fill="#111">System Architecture</text>
+
+  <rect x="80" y="160" width="260" height="160" rx="12" fill="#f0f4ff" stroke="#4a67d6" stroke-width="2"/>
+  <text x="210" y="210" text-anchor="middle" font-family="Arial" font-size="20" fill="#111">Client</text>
+  <text x="210" y="245" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">Browser (User/Shop)</text>
+
+  <rect x="470" y="140" width="260" height="200" rx="12" fill="#fff3e8" stroke="#d6792c" stroke-width="2"/>
+  <text x="600" y="195" text-anchor="middle" font-family="Arial" font-size="20" fill="#111">Web Server</text>
+  <text x="600" y="230" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">Apache (XAMPP)</text>
+  <text x="600" y="260" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">PHP Application</text>
+
+  <rect x="860" y="160" width="260" height="160" rx="12" fill="#e9f8ef" stroke="#2f9e5a" stroke-width="2"/>
+  <text x="990" y="210" text-anchor="middle" font-family="Arial" font-size="20" fill="#111">Database</text>
+  <text x="990" y="245" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">MySQL (MariaDB)</text>
+
+  <line x1="340" y1="240" x2="470" y2="240" stroke="#333" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="730" y1="240" x2="860" y2="240" stroke="#333" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0,0 12,4 0,8" fill="#333" />
+    </marker>
+  </defs>
+
+  <text x="405" y="225" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">HTTP</text>
+  <text x="795" y="225" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">SQL</text>
+</svg>

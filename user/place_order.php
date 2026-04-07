@@ -1,6 +1,7 @@
 <?php
 session_start();
 require "../config/db.php";
+require "../config/schema.php";
 
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'user') {
     header("Location: ../login.php");
@@ -62,6 +63,8 @@ foreach ($cart as $item) {
     $name = (string) ($item['name'] ?? '');
     $price = (int) ($item['price'] ?? 0);
     $qty = (int) ($item['qty'] ?? 0);
+    $itemId = (int) ($item['item_id'] ?? 0);
+    $autoReady = (int) ($item['auto_ready'] ?? 1);
 
     if ($name === '' || $qty <= 0) {
         continue;
@@ -72,10 +75,12 @@ foreach ($cart as $item) {
     $itemCount += $qty;
 
     $items[] = [
+        'item_id' => $itemId,
         'name' => $name,
         'price' => $price,
         'qty' => $qty,
         'line_total' => $lineTotal,
+        'auto_ready' => $autoReady,
     ];
 }
 
@@ -86,6 +91,8 @@ if ($itemCount <= 0) {
 
 // Ensure daily token reset follows IST date.
 mysqli_query($conn, "SET time_zone = '+05:30'");
+
+ensure_orders_schema($conn);
 
 mysqli_begin_transaction($conn);
 
@@ -105,14 +112,24 @@ try {
     $itemsJson = json_encode($items, JSON_UNESCAPED_UNICODE);
     $userId = (int) $_SESSION['user_id'];
     $totalAmount = number_format($total, 2, '.', '');
+    $paymentMethod = 'UPI';
+    $paymentStatus = 'PAID';
+    $receiptNo = 'RCT-' . $tokenCode;
+    $orderStatus = 'READY';
+    foreach ($cart as $cartItem) {
+        if ((int) ($cartItem['auto_ready'] ?? 1) !== 1) {
+            $orderStatus = 'PLACED';
+            break;
+        }
+    }
 
-    $insertSql = "INSERT INTO orders (user_id, shop_key, shop_label, token_no, token_code, items_json, item_count, total_amount, status)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PLACED')";
+    $insertSql = "INSERT INTO orders (user_id, shop_key, shop_label, token_no, token_code, items_json, item_count, total_amount, status, payment_method, payment_status, receipt_no)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmtInsert = mysqli_prepare($conn, $insertSql);
     if (!$stmtInsert) {
         throw new Exception(mysqli_error($conn));
     }
-    mysqli_stmt_bind_param($stmtInsert, "ississid", $userId, $shop, $shopLabel, $tokenNo, $tokenCode, $itemsJson, $itemCount, $totalAmount);
+    mysqli_stmt_bind_param($stmtInsert, "ississidssss", $userId, $shop, $shopLabel, $tokenNo, $tokenCode, $itemsJson, $itemCount, $totalAmount, $orderStatus, $paymentMethod, $paymentStatus, $receiptNo);
     mysqli_stmt_execute($stmtInsert);
     $orderId = mysqli_insert_id($conn);
     mysqli_stmt_close($stmtInsert);
@@ -129,8 +146,11 @@ $_SESSION['cart'] = [];
 unset($_SESSION['cart_shop']);
 
 $orderStatus = 'PLACED';
+$paymentMethodOut = 'UPI';
+$paymentStatusOut = 'PAID';
+$receiptNoOut = '';
 $orderTime = '';
-$stmtStatus = mysqli_prepare($conn, "SELECT status, created_at FROM orders WHERE id = ? AND user_id = ?");
+$stmtStatus = mysqli_prepare($conn, "SELECT status, payment_method, payment_status, receipt_no, created_at FROM orders WHERE id = ? AND user_id = ?");
 if ($stmtStatus) {
     $uid = (int) $_SESSION['user_id'];
     mysqli_stmt_bind_param($stmtStatus, "ii", $orderId, $uid);
@@ -138,6 +158,9 @@ if ($stmtStatus) {
     $statusResult = mysqli_stmt_get_result($stmtStatus);
     if ($statusRow = mysqli_fetch_assoc($statusResult)) {
         $orderStatus = (string) ($statusRow['status'] ?? $orderStatus);
+        $paymentMethodOut = (string) ($statusRow['payment_method'] ?? $paymentMethodOut);
+        $paymentStatusOut = (string) ($statusRow['payment_status'] ?? $paymentStatusOut);
+        $receiptNoOut = (string) ($statusRow['receipt_no'] ?? $receiptNoOut);
         $orderTime = (string) ($statusRow['created_at'] ?? '');
     }
     mysqli_stmt_close($stmtStatus);
@@ -197,10 +220,15 @@ if ($stmtStatus) {
         <div class="row"><b>Shop:</b> <?= htmlspecialchars($shopLabel) ?></div>
         <div class="row"><b>Items:</b> <?= (int) $itemCount ?></div>
         <div class="row"><b>Total:</b> Rs <?= (int) $total ?></div>
+        <div class="row"><b>Payment:</b> <?= htmlspecialchars($paymentMethodOut . ' - ' . $paymentStatusOut) ?></div>
+        <?php if ($receiptNoOut !== ''): ?>
+            <div class="row"><b>Receipt:</b> <?= htmlspecialchars($receiptNoOut) ?></div>
+        <?php endif; ?>
         <div class="row"><b>Status:</b> <?= htmlspecialchars($orderStatus) ?></div>
         <?php if ($orderTime !== ''): ?>
             <div class="row"><b>Time:</b> <?= htmlspecialchars($orderTime) ?></div>
         <?php endif; ?>
+        <div class="auto">Show this receipt at the counter to collect your order.</div>
         <div class="auto">Auto-refresh is on (every 20 seconds).</div>
         <div class="links">
             <a href="mytoken.php">View My Tokens</a>

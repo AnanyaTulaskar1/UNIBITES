@@ -1,6 +1,7 @@
 ﻿<?php
 session_start();
 require "../config/db.php";
+require "../config/schema.php";
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'shop') {
     header("Location: ../login.php");
@@ -30,23 +31,7 @@ $shopNameToKey = [
 
 $shopKey = $shopNameToKey[$shopKeyClean] ?? ($shopNameToKey[$shopKeyRaw] ?? '');
 
-$createOrdersSql = "
-CREATE TABLE IF NOT EXISTS orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    shop_key VARCHAR(64) NOT NULL,
-    shop_label VARCHAR(120) NOT NULL,
-    token_no INT NOT NULL,
-    token_code VARCHAR(40) NOT NULL,
-    items_json LONGTEXT NOT NULL,
-    item_count INT NOT NULL,
-    total_amount DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'PLACED',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_shop_token (shop_key, token_no),
-    INDEX idx_user (user_id)
-)";
-mysqli_query($conn, $createOrdersSql);
+ensure_orders_schema($conn);
 
 $stats = [
     'total' => 0,
@@ -278,6 +263,7 @@ if ($shopKey !== '') {
                 <p class="sub">Welcome, <?= htmlspecialchars($shopName !== '' ? $shopName : 'Shop') ?></p>
             </div>
             <div>
+                <a class="btn secondary" href="menu_manage.php">Manage Menu</a>
                 <a class="btn secondary" href="orders.php">View Orders</a>
                 <a class="btn logout" href="../logout.php">Logout</a>
             </div>

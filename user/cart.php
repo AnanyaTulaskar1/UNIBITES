@@ -174,12 +174,12 @@ h2 {
     </div>
 <?php endforeach; ?>
 
-<div class="pay-bar">
-    <div><?= $count ?> Item(s) | Total Bill: Rs <?= $total ?></div>
-    <form action="place_order.php" method="post">
-        <button type="submit">Pay Rs <?= $total ?></button>
-    </form>
-</div>
+    <div class="pay-bar">
+        <div><?= $count ?> Item(s) | Total Bill: Rs <?= $total ?></div>
+        <form action="place_order.php" method="post">
+        <button type="submit">Pay via UPI Rs <?= $total ?></button>
+        </form>
+    </div>
 <?php endif; ?>
 
 </body>
