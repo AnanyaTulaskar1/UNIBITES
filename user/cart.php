@@ -153,6 +153,12 @@ h2 {
     margin-top: 8px;
 }
 
+.payment-note {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
 .payment-card input {
     width: 100%;
     padding: 8px 10px;
@@ -166,6 +172,61 @@ h2 {
     color: #111827;
 }
 
+.qr-box {
+    margin-top: 10px;
+    display: inline-block;
+    background: #f9fafb;
+    border: 1px dashed #d1d5db;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.qr-box img {
+    width: 140px;
+    height: 140px;
+    display: block;
+}
+
+.stepper {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+}
+
+.step {
+    background: #f3f4f6;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.step.active {
+    background: #16a34a;
+    color: #fff;
+}
+
+.upi-apps {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.upi-apps button {
+    text-decoration: none;
+    background: #111827;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+}
+
 .nav-row form {
     margin: 0;
 }
@@ -173,6 +234,63 @@ h2 {
 .nav-row button:disabled {
     background: #9ca3af;
     cursor: not-allowed;
+}
+
+.hidden {
+    display: none;
+}
+
+.pin-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.pin-input {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.pin-section {
+    margin-top: 8px;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.overlay-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px;
+    width: min(360px, 90vw);
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #16a34a;
+    border-radius: 50%;
+    margin: 10px auto 6px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 </style>
 </head>
@@ -206,21 +324,154 @@ h2 {
     </div>
 <?php endforeach; ?>
 
-    <form action="place_order.php" method="post">
+    <?php
+        $upiVpa = 'unibites@upi';
+        $upiName = 'UniBites';
+        $upiAmount = number_format($total, 2, '.', '');
+        $upiNote = 'UniBites Order';
+        $upiUrl = 'upi://pay?pa=' . urlencode($upiVpa)
+            . '&pn=' . urlencode($upiName)
+            . '&am=' . urlencode($upiAmount)
+            . '&cu=INR'
+            . '&tn=' . urlencode($upiNote);
+    ?>
+    <form id="upiForm" action="place_order.php" method="post">
         <div class="payment-card">
             <h4>Payment Method: UPI</h4>
             <div>Pay to UPI ID: <span class="upi-id">unibites@upi</span></div>
-            <label for="payment_ref">UPI Transaction ID (optional)</label>
-            <input id="payment_ref" name="payment_ref" type="text" maxlength="60" placeholder="Example: 1234567890">
-            <input type="hidden" name="payment_method" value="UPI">
+
+            <div class="stepper">
+                <div class="step active">1. Proceed</div>
+                <div class="step">2. Pay in App</div>
+                <div class="step">3. Receipt</div>
+            </div>
+
+            <div id="upiOptions" class="hidden">
+                <label for="payer_upi">Your UPI ID (demo)</label>
+                <input id="payer_upi" type="text" maxlength="80" placeholder="example@okaxis">
+
+                <div class="upi-apps">
+                    <button type="button" data-upi="gpay">Google Pay</button>
+                    <button type="button" data-upi="phonepe">PhonePe</button>
+                    <button type="button" data-upi="paytm">Paytm</button>
+                    <button type="button" data-upi="other">Other UPI</button>
+                </div>
+
+                <div class="qr-box">
+                    <img alt="UPI QR Demo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><rect width='100%25' height='100%25' fill='%23ffffff'/><rect x='8' y='8' width='34' height='34' fill='%23111827'/><rect x='98' y='8' width='34' height='34' fill='%23111827'/><rect x='8' y='98' width='34' height='34' fill='%23111827'/><rect x='52' y='52' width='36' height='36' fill='%23111827'/><text x='70' y='78' font-size='10' text-anchor='middle' fill='%23ffffff'>UPI</text></svg>">
+                </div>
+
+                <div id="pinSection" class="pin-section hidden">
+                    <div class="payment-note">Enter UPI PIN (any 4 digits, demo)</div>
+                    <div class="pin-row">
+                        <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 1">
+                        <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 2">
+                        <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 3">
+                        <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 4">
+                    </div>
+                    <div class="payment-note" id="pinNote" style="color:#dc2626; display:none;">Enter 4 digits to continue.</div>
+                    <div style="margin-top:8px;">
+                        <button id="payNowBtn" type="button">Pay Now</button>
+                    </div>
+                </div>
+
+                <label for="payment_ref">UPI Transaction ID (optional)</label>
+                <input id="payment_ref" name="payment_ref" type="text" maxlength="60" placeholder="Example: 1234567890">
+                <input type="hidden" name="payment_method" value="UPI">
+            </div>
         </div>
 
         <div class="pay-bar">
             <div><?= $count ?> Item(s) | Total Bill: Rs <?= $total ?></div>
-            <button type="submit">Pay via UPI Rs <?= $total ?></button>
+            <button id="proceedBtn" type="button">Proceed to Pay Rs <?= $total ?></button>
         </div>
     </form>
 <?php endif; ?>
 
+    <div id="overlay" class="overlay">
+        <div class="overlay-card">
+            <div class="spinner"></div>
+            <div id="overlayText">Redirecting to UPI app...</div>
+            <div class="payment-note">Demo flow (no real verification)</div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var proceedBtn = document.getElementById('proceedBtn');
+        var upiOptions = document.getElementById('upiOptions');
+        var overlay = document.getElementById('overlay');
+        var overlayText = document.getElementById('overlayText');
+        var form = document.getElementById('upiForm');
+        var paymentRef = document.getElementById('payment_ref');
+        var pinSection = document.getElementById('pinSection');
+        var payNowBtn = document.getElementById('payNowBtn');
+        var pinNote = document.getElementById('pinNote');
+        var pinInputs = pinSection ? pinSection.querySelectorAll('.pin-input') : [];
+
+        if (proceedBtn && upiOptions) {
+            proceedBtn.addEventListener('click', function() {
+                upiOptions.classList.remove('hidden');
+                proceedBtn.textContent = 'Choose UPI App';
+            });
+        }
+
+        document.querySelectorAll('[data-upi]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                overlayText.textContent = 'Redirecting to UPI app...';
+                overlay.style.display = 'flex';
+                setTimeout(function() {
+                    overlay.style.display = 'none';
+                    if (pinSection) {
+                        pinSection.classList.remove('hidden');
+                    }
+                    if (pinInputs.length) {
+                        pinInputs[0].focus();
+                    }
+                }, 1200);
+            });
+        });
+
+        function pinFilled() {
+            var count = 0;
+            pinInputs.forEach(function(input) {
+                if (input.value.trim().length === 1) count += 1;
+            });
+            return count === 4;
+        }
+
+        pinInputs.forEach(function(input, idx) {
+            input.addEventListener('input', function() {
+                var v = input.value.replace(/[^0-9]/g, '');
+                input.value = v.substring(0, 1);
+                if (v && idx < pinInputs.length - 1) {
+                    pinInputs[idx + 1].focus();
+                }
+                if (pinNote) {
+                    pinNote.style.display = pinFilled() ? 'none' : 'block';
+                }
+            });
+        });
+
+        if (payNowBtn) {
+            payNowBtn.addEventListener('click', function() {
+                if (!pinFilled()) {
+                    if (pinNote) pinNote.style.display = 'block';
+                    return;
+                }
+                if (paymentRef && paymentRef.value.trim() === '') {
+                    paymentRef.value = 'UPI-' + Date.now();
+                }
+                overlayText.textContent = 'Processing payment...';
+                overlay.style.display = 'flex';
+                setTimeout(function() {
+                    form.submit();
+                }, 1500);
+            });
+        }
+    })();
+</script>
+
 </body>
+</html>
 </html>

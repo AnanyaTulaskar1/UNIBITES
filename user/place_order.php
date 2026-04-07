@@ -195,6 +195,23 @@ if ($stmtStatus) {
             padding: 20px;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
         }
+        .success {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0 12px;
+        }
+        .check {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #16a34a;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
         .token {
             font-size: 30px;
             font-weight: 700;
@@ -224,7 +241,12 @@ if ($stmtStatus) {
 </head>
 <body>
     <div class="card">
-        <h2>Order placed successfully</h2>
+        <h2>Payment successful</h2>
+        <div class="success">
+            <div class="check">✓</div>
+            <div style="color:#16a34a;font-weight:700;">Payment Successful</div>
+        </div>
+        <div class="auto">Token generated after payment confirmation.</div>
         <div class="token"><?= htmlspecialchars($tokenCode) ?></div>
         <div class="row"><b>Shop:</b> <?= htmlspecialchars($shopLabel) ?></div>
         <div class="row"><b>Items:</b> <?= (int) $itemCount ?></div>
@@ -238,11 +260,23 @@ if ($stmtStatus) {
         <?php endif; ?>
         <div class="row"><b>Status:</b> <?= htmlspecialchars($orderStatus) ?></div>
         <?php if ($orderTime !== ''): ?>
-            <div class="row"><b>Time:</b> <?= htmlspecialchars($orderTime) ?></div>
+            <div class="row"><b>Date & Time:</b> <?= htmlspecialchars(date('d-m-Y H:i', strtotime($orderTime))) ?></div>
+        <?php endif; ?>
+        <?php if (!empty($items)): ?>
+            <div class="row"><b>Items:</b></div>
+            <ul>
+                <?php foreach ($items as $item): ?>
+                    <li>
+                        <?= htmlspecialchars((string) ($item['name'] ?? 'Item')) ?>
+                        x <?= (int) ($item['qty'] ?? 0) ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
         <?php endif; ?>
         <div class="auto">Show this receipt at the counter to collect your order.</div>
         <div class="auto">Auto-refresh is on (every 20 seconds).</div>
         <div class="links">
+            <a href="receipt.php?id=<?= (int) $orderId ?>">View Receipt</a>
             <a href="mytoken.php">View My Tokens</a>
             <a href="dashboard.php">Back to Home</a>
         </div>

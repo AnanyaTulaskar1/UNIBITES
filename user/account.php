@@ -93,6 +93,7 @@ if ($stmt) {
         <div class="row"><b>Name:</b> <?= htmlspecialchars($name) ?></div>
         <div class="row"><b>Email:</b> <?= htmlspecialchars($email) ?></div>
         <div class="row"><b>Role:</b> User</div>
+        <div class="row"><a class="back-link" href="receipts.php">My Receipts</a></div>
         <a class="logout" href="../logout.php">Logout</a>
     </div>
 </body>
