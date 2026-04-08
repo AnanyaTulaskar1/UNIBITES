@@ -166,7 +166,7 @@ function parseItems(string $itemsJson): array {
                     <div class="muted"><b>Receipt:</b> <?= htmlspecialchars($order['receipt_no']) ?></div>
                 <?php endif; ?>
                 <?php if (!empty($order['payment_ref'])): ?>
-                    <div class="muted"><b>UPI Ref:</b> <?= htmlspecialchars($order['payment_ref']) ?></div>
+                    <div class="muted"><b>Payment Ref:</b> <?= htmlspecialchars($order['payment_ref']) ?></div>
                 <?php endif; ?>
                 <div class="muted"><b>Time:</b> <?= htmlspecialchars($order['created_at']) ?></div>
 

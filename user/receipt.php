@@ -121,7 +121,7 @@ $isCancelled = ($statusUpper === 'CANCELLED');
             <div class="row"><b>Receipt No:</b> <?= htmlspecialchars((string) $order['receipt_no']) ?></div>
         <?php endif; ?>
         <?php if (!empty($order['payment_ref'])): ?>
-            <div class="row"><b>UPI Ref:</b> <?= htmlspecialchars((string) $order['payment_ref']) ?></div>
+            <div class="row"><b>Payment Ref:</b> <?= htmlspecialchars((string) $order['payment_ref']) ?></div>
         <?php endif; ?>
 
         <div class="items">

@@ -227,6 +227,29 @@ h2 {
     cursor: pointer;
 }
 
+.payment-methods {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.method-btn {
+    border: none;
+    background: #111827;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.method-btn.active {
+    opacity: 1;
+    background: #16a34a;
+}
+
 .nav-row form {
     margin: 0;
 }
@@ -335,49 +358,85 @@ h2 {
             . '&cu=INR'
             . '&tn=' . urlencode($upiNote);
     ?>
-    <form id="upiForm" action="place_order.php" method="post">
-        <div class="payment-card">
-            <h4>Payment Method: UPI</h4>
-            <div>Pay to UPI ID: <span class="upi-id">unibites@upi</span></div>
+    <form id="paymentForm" action="place_order.php" method="post">
+        <input type="hidden" id="payment_method" name="payment_method" value="UPI">
+        <input type="hidden" id="payment_ref" name="payment_ref" value="">
 
-            <div class="stepper">
-                <div class="step active">1. Proceed</div>
-                <div class="step">2. Pay in App</div>
-                <div class="step">3. Receipt</div>
+        <div id="paymentFlow" class="hidden">
+            <div class="payment-card">
+                <h4>Payment Method</h4>
+                <div class="payment-note">Do not enter real card or UPI details.</div>
+                <div class="payment-methods">
+                    <button type="button" class="method-btn active" data-method="UPI">UPI</button>
+                    <button type="button" class="method-btn" data-method="CARD">Card</button>
+                </div>
             </div>
 
-            <div id="upiOptions" class="hidden">
-                <label for="payer_upi">Your UPI ID (demo)</label>
-                <input id="payer_upi" type="text" maxlength="80" placeholder="example@okaxis">
+            <div id="upiCard" class="payment-card">
+                <h4>UPI</h4>
+                <div>Pay to UPI ID: <span class="upi-id">unibites@upi</span></div>
 
-                <div class="upi-apps">
-                    <button type="button" data-upi="gpay">Google Pay</button>
-                    <button type="button" data-upi="phonepe">PhonePe</button>
-                    <button type="button" data-upi="paytm">Paytm</button>
-                    <button type="button" data-upi="other">Other UPI</button>
+                <div class="stepper">
+                    <div class="step active">1. Proceed</div>
+                    <div class="step">2. Pay in App</div>
+                    <div class="step">3. Receipt</div>
                 </div>
 
-                <div class="qr-box">
-                    <img alt="UPI QR Demo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><rect width='100%25' height='100%25' fill='%23ffffff'/><rect x='8' y='8' width='34' height='34' fill='%23111827'/><rect x='98' y='8' width='34' height='34' fill='%23111827'/><rect x='8' y='98' width='34' height='34' fill='%23111827'/><rect x='52' y='52' width='36' height='36' fill='%23111827'/><text x='70' y='78' font-size='10' text-anchor='middle' fill='%23ffffff'>UPI</text></svg>">
-                </div>
+                <div id="upiOptions" class="hidden">
+                    <label for="payer_upi">Your UPI ID</label>
+                    <input id="payer_upi" type="text" maxlength="80" placeholder="example@okaxis">
 
-                <div id="pinSection" class="pin-section hidden">
-                    <div class="payment-note">Enter UPI PIN (any 4 digits, demo)</div>
-                    <div class="pin-row">
-                        <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 1">
-                        <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 2">
-                        <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 3">
-                        <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 4">
+                    <div class="upi-apps">
+                        <button type="button" data-upi="gpay">Google Pay</button>
+                        <button type="button" data-upi="phonepe">PhonePe</button>
+                        <button type="button" data-upi="paytm">Paytm</button>
+                        <button type="button" data-upi="other">Other UPI</button>
                     </div>
-                    <div class="payment-note" id="pinNote" style="color:#dc2626; display:none;">Enter 4 digits to continue.</div>
-                    <div style="margin-top:8px;">
-                        <button id="payNowBtn" type="button">Pay Now</button>
-                    </div>
-                </div>
 
-                <label for="payment_ref">UPI Transaction ID (optional)</label>
-                <input id="payment_ref" name="payment_ref" type="text" maxlength="60" placeholder="Example: 1234567890">
-                <input type="hidden" name="payment_method" value="UPI">
+                    <div class="qr-box">
+                    <img alt="UPI QR" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><rect width='100%25' height='100%25' fill='%23ffffff'/><rect x='8' y='8' width='34' height='34' fill='%23111827'/><rect x='98' y='8' width='34' height='34' fill='%23111827'/><rect x='8' y='98' width='34' height='34' fill='%23111827'/><rect x='52' y='52' width='36' height='36' fill='%23111827'/><text x='70' y='78' font-size='10' text-anchor='middle' fill='%23ffffff'>UPI</text></svg>">
+                    </div>
+
+                    <div id="pinSection" class="pin-section hidden">
+                        <div class="payment-note">Enter UPI PIN (any 4 digits)</div>
+                        <div class="pin-row">
+                            <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 1">
+                            <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 2">
+                            <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 3">
+                            <input class="pin-input" type="password" inputmode="numeric" maxlength="1" aria-label="PIN digit 4">
+                        </div>
+                        <div class="payment-note" id="pinNote" style="color:#dc2626; display:none;">Enter 4 digits to continue.</div>
+                        <div style="margin-top:8px;">
+                            <button id="payNowBtn" type="button">Pay Now</button>
+                        </div>
+                    </div>
+
+                    <label for="upi_ref">UPI Transaction ID (optional)</label>
+                    <input id="upi_ref" type="text" maxlength="60" placeholder="Example: 1234567890">
+                </div>
+            </div>
+
+            <div id="cardOptions" class="payment-card hidden">
+                <h4>Card Payment</h4>
+                <label for="card_name">Cardholder Name</label>
+                <input id="card_name" type="text" maxlength="40" placeholder="Name on card">
+
+                <label for="card_number">Card Number</label>
+                <input id="card_number" type="text" inputmode="numeric" maxlength="19" placeholder="1234 5678 9012 3456">
+
+                <label for="card_expiry">Expiry (MM/YY)</label>
+                <input id="card_expiry" type="text" inputmode="numeric" maxlength="5" placeholder="08/29">
+
+                <label for="card_cvv">CVV (3/4 digits)</label>
+                <input id="card_cvv" type="password" inputmode="numeric" maxlength="4" placeholder="123">
+
+                <label for="card_pin">Debit Card PIN (4 digits)</label>
+                <input id="card_pin" type="password" inputmode="numeric" maxlength="4" placeholder="0000">
+
+                <div class="payment-note" id="cardNote" style="color:#dc2626; display:none;">Please fill all card fields correctly.</div>
+                <div style="margin-top:8px;">
+                    <button id="cardPayNowBtn" type="button">Pay Now</button>
+                </div>
             </div>
         </div>
 
@@ -392,29 +451,64 @@ h2 {
         <div class="overlay-card">
             <div class="spinner"></div>
             <div id="overlayText">Redirecting to UPI app...</div>
-            <div class="payment-note">Demo flow (no real verification)</div>
+            <div class="payment-note">No real verification</div>
         </div>
     </div>
 
     <script>
     (function() {
         var proceedBtn = document.getElementById('proceedBtn');
+        var paymentFlow = document.getElementById('paymentFlow');
         var upiOptions = document.getElementById('upiOptions');
         var overlay = document.getElementById('overlay');
         var overlayText = document.getElementById('overlayText');
-        var form = document.getElementById('upiForm');
-        var paymentRef = document.getElementById('payment_ref');
+        var form = document.getElementById('paymentForm');
+        var paymentMethodInput = document.getElementById('payment_method');
+        var paymentRefInput = document.getElementById('payment_ref');
+        var upiRefInput = document.getElementById('upi_ref');
         var pinSection = document.getElementById('pinSection');
         var payNowBtn = document.getElementById('payNowBtn');
         var pinNote = document.getElementById('pinNote');
         var pinInputs = pinSection ? pinSection.querySelectorAll('.pin-input') : [];
+        var methodButtons = document.querySelectorAll('[data-method]');
+        var upiCard = document.getElementById('upiCard');
+        var cardOptions = document.getElementById('cardOptions');
+        var cardPayNowBtn = document.getElementById('cardPayNowBtn');
+        var cardNumber = document.getElementById('card_number');
+        var cardExpiry = document.getElementById('card_expiry');
+        var cardCvv = document.getElementById('card_cvv');
+        var cardPin = document.getElementById('card_pin');
+        var cardNote = document.getElementById('cardNote');
 
-        if (proceedBtn && upiOptions) {
+        if (proceedBtn && paymentFlow) {
             proceedBtn.addEventListener('click', function() {
+                paymentFlow.classList.remove('hidden');
                 upiOptions.classList.remove('hidden');
-                proceedBtn.textContent = 'Choose UPI App';
+                proceedBtn.textContent = 'Choose Payment Method';
             });
         }
+
+        function setMethod(method) {
+            if (paymentMethodInput) {
+                paymentMethodInput.value = method;
+            }
+            methodButtons.forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-method') === method);
+            });
+            if (method === 'UPI') {
+                if (upiCard) upiCard.classList.remove('hidden');
+                if (cardOptions) cardOptions.classList.add('hidden');
+            } else {
+                if (upiCard) upiCard.classList.add('hidden');
+                if (cardOptions) cardOptions.classList.remove('hidden');
+            }
+        }
+
+        methodButtons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                setMethod(btn.getAttribute('data-method'));
+            });
+        });
 
         document.querySelectorAll('[data-upi]').forEach(function(btn) {
             btn.addEventListener('click', function() {
@@ -459,10 +553,63 @@ h2 {
                     if (pinNote) pinNote.style.display = 'block';
                     return;
                 }
-                if (paymentRef && paymentRef.value.trim() === '') {
-                    paymentRef.value = 'UPI-' + Date.now();
+                if (paymentMethodInput) {
+                    paymentMethodInput.value = 'UPI';
+                }
+                if (paymentRefInput) {
+                    var ref = upiRefInput ? upiRefInput.value.trim() : '';
+                    paymentRefInput.value = ref !== '' ? ref : ('UPI-' + Date.now());
                 }
                 overlayText.textContent = 'Processing payment...';
+                overlay.style.display = 'flex';
+                setTimeout(function() {
+                    form.submit();
+                }, 1500);
+            });
+        }
+
+        if (cardNumber) {
+            cardNumber.addEventListener('input', function() {
+                var digits = cardNumber.value.replace(/[^0-9]/g, '').substring(0, 16);
+                var parts = digits.match(/.{1,4}/g);
+                cardNumber.value = parts ? parts.join(' ') : '';
+            });
+        }
+
+        if (cardExpiry) {
+            cardExpiry.addEventListener('input', function() {
+                var digits = cardExpiry.value.replace(/[^0-9]/g, '').substring(0, 4);
+                if (digits.length >= 3) {
+                    cardExpiry.value = digits.substring(0, 2) + '/' + digits.substring(2);
+                } else {
+                    cardExpiry.value = digits;
+                }
+            });
+        }
+
+        function cardValid() {
+            var number = cardNumber ? cardNumber.value.replace(/\s+/g, '') : '';
+            var expiry = cardExpiry ? cardExpiry.value.trim() : '';
+            var cvv = cardCvv ? cardCvv.value.trim() : '';
+            var pin = cardPin ? cardPin.value.trim() : '';
+            var expiryOk = /^[0-1][0-9]\/[0-9]{2}$/.test(expiry) && expiry.substring(0, 2) !== '00';
+            return number.length === 16 && expiryOk && (cvv.length === 3 || cvv.length === 4) && pin.length === 4;
+        }
+
+        if (cardPayNowBtn) {
+            cardPayNowBtn.addEventListener('click', function() {
+                if (!cardValid()) {
+                    if (cardNote) cardNote.style.display = 'block';
+                    return;
+                }
+                if (cardNote) cardNote.style.display = 'none';
+                if (paymentMethodInput) {
+                    paymentMethodInput.value = 'CARD';
+                }
+                if (paymentRefInput) {
+                    paymentRefInput.value = 'CARD-' + Date.now();
+                }
+                overlayText.textContent = 'Processing card payment...';
                 overlay.style.display = 'flex';
                 setTimeout(function() {
                     form.submit();

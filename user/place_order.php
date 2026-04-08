@@ -113,7 +113,8 @@ try {
     $userId = (int) $_SESSION['user_id'];
 $totalAmount = number_format($total, 2, '.', '');
 $paymentMethod = strtoupper(trim((string) ($_POST['payment_method'] ?? 'UPI')));
-if ($paymentMethod !== 'UPI') {
+$allowedMethods = ['UPI', 'CARD'];
+if (!in_array($paymentMethod, $allowedMethods, true)) {
     $paymentMethod = 'UPI';
 }
 $paymentStatus = 'PAID';
@@ -256,7 +257,7 @@ if ($stmtStatus) {
             <div class="row"><b>Receipt:</b> <?= htmlspecialchars($receiptNoOut) ?></div>
         <?php endif; ?>
         <?php if ($paymentRefOut !== ''): ?>
-            <div class="row"><b>UPI Ref:</b> <?= htmlspecialchars($paymentRefOut) ?></div>
+            <div class="row"><b>Payment Ref:</b> <?= htmlspecialchars($paymentRefOut) ?></div>
         <?php endif; ?>
         <div class="row"><b>Status:</b> <?= htmlspecialchars($orderStatus) ?></div>
         <?php if ($orderTime !== ''): ?>
