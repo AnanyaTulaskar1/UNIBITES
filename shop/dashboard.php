@@ -38,9 +38,7 @@ $stats = [
     'today' => 0,
     'revenue' => 0.0,
     'PLACED' => 0,
-    'PREPARING' => 0,
     'READY' => 0,
-    'COMPLETED' => 0,
     'CANCELLED' => 0,
 ];
 
@@ -243,9 +241,7 @@ if ($shopKey !== '') {
             box-shadow: 0 14px 26px rgba(0,0,0,0.12);
         }
         .pill.placed { background: #fff3e8; }
-        .pill.preparing { background: #fff7d6; }
         .pill.ready { background: #e9f8ef; }
-        .pill.completed { background: #e8f1ff; }
         .pill.cancelled { background: #fee2e2; }
         .warn {
             background: #fff;
@@ -299,9 +295,7 @@ if ($shopKey !== '') {
             <div class="section-title">Order Status</div>
             <div class="status-row">
                 <div class="pill placed"><a href="orders.php?status=PLACED">Placed<br><b><?= (int) $stats['PLACED'] ?></b></a></div>
-                <div class="pill preparing"><a href="orders.php?status=PREPARING">Preparing<br><b><?= (int) $stats['PREPARING'] ?></b></a></div>
                 <div class="pill ready"><a href="orders.php?status=READY">Ready<br><b><?= (int) $stats['READY'] ?></b></a></div>
-                <div class="pill completed"><a href="orders.php?status=COMPLETED">Completed<br><b><?= (int) $stats['COMPLETED'] ?></b></a></div>
                 <div class="pill cancelled"><a href="orders.php?status=CANCELLED">Cancelled<br><b><?= (int) $stats['CANCELLED'] ?></b></a></div>
             </div>
         <?php endif; ?>

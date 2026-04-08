@@ -32,11 +32,41 @@ $shopNameToKey = [
 ];
 
 $shopKey = $shopNameToKey[$shopKeyClean] ?? ($shopNameToKey[$shopKeyRaw] ?? '');
-$allowedStatuses = ['PLACED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED'];
+$allowedStatuses = ['PLACED', 'READY', 'CANCELLED'];
 
 $filterStatus = strtoupper(trim((string) ($_GET['status'] ?? 'ALL')));
 if ($filterStatus !== 'ALL' && !in_array($filterStatus, $allowedStatuses, true)) {
     $filterStatus = 'ALL';
+}
+
+$msg = ['type' => '', 'text' => ''];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'cancel') {
+    $orderId = (int) ($_POST['order_id'] ?? 0);
+
+    if ($shopKey === '') {
+        $msg = ['type' => 'err', 'text' => 'Shop mapping not found. Unable to cancel this order.'];
+    } elseif ($orderId <= 0) {
+        $msg = ['type' => 'err', 'text' => 'Invalid order selected for cancellation.'];
+    } else {
+        $stmtCancel = mysqli_prepare(
+            $conn,
+            "UPDATE orders SET status = 'CANCELLED' WHERE id = ? AND shop_key = ? AND status NOT IN ('COMPLETED', 'CANCELLED')"
+        );
+        if ($stmtCancel) {
+            mysqli_stmt_bind_param($stmtCancel, "is", $orderId, $shopKey);
+            mysqli_stmt_execute($stmtCancel);
+            $affected = mysqli_stmt_affected_rows($stmtCancel);
+            mysqli_stmt_close($stmtCancel);
+
+            if ($affected > 0) {
+                $msg = ['type' => 'ok', 'text' => 'Order cancelled successfully.'];
+            } else {
+                $msg = ['type' => 'err', 'text' => 'Unable to cancel. It may already be completed or cancelled.'];
+            }
+        } else {
+            $msg = ['type' => 'err', 'text' => 'Unable to cancel this order right now.'];
+        }
+    }
 }
 
 $orders = [];
@@ -107,13 +137,17 @@ function parseItems(string $itemsJson): array {
         </div>
         <h2>Shop Orders</h2>
     </div>
-    <div class="auto">Auto-refresh is on (every 30 seconds). Orders are auto-marked ready after payment.</div>
+    <div class="auto">Auto-refresh is on (every 30 seconds). Orders are auto-marked ready after payment. Shops can cancel before completion.</div>
 
     <div class="filters">
         <?php foreach (array_merge(['ALL'], $allowedStatuses) as $status): ?>
             <a class="<?= $filterStatus === $status ? 'active' : '' ?>" href="orders.php?status=<?= urlencode($status) ?>"><?= htmlspecialchars($status) ?></a>
         <?php endforeach; ?>
     </div>
+
+    <?php if (!empty($msg['text'])): ?>
+        <div class="msg <?= $msg['type'] === 'ok' ? 'ok' : 'err' ?>"><?= htmlspecialchars($msg['text']) ?></div>
+    <?php endif; ?>
 
     <?php if ($shopKey === ''): ?>
         <div class="empty">Shop mapping not found for this account. Use shop account name like north/south/tiffany/shalom.</div>
@@ -152,6 +186,13 @@ function parseItems(string $itemsJson): array {
                     </div>
                 <?php endif; ?>
 
+                <?php if (!in_array(strtoupper((string) $order['status']), ['COMPLETED', 'CANCELLED'], true)): ?>
+                    <form class="status-form" method="post" onsubmit="return confirm('Cancel this order? This cannot be undone.');">
+                        <input type="hidden" name="action" value="cancel">
+                        <input type="hidden" name="order_id" value="<?= (int) $order['id'] ?>">
+                        <button type="submit" style="background:#dc2626;">Cancel Order</button>
+                    </form>
+                <?php endif; ?>
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
