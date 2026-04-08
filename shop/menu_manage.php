@@ -35,6 +35,67 @@ $shopKey = $shopNameToKey[$shopKeyClean] ?? ($shopNameToKey[$shopKeyRaw] ?? '');
 $message = '';
 $error = '';
 
+function ensure_upload_dir(string $dir, string &$error): bool {
+    if (is_dir($dir)) {
+        return true;
+    }
+    if (!mkdir($dir, 0775, true) && !is_dir($dir)) {
+        $error = 'Failed to create upload directory.';
+        return false;
+    }
+    return true;
+}
+
+function handle_image_upload(array $file, string $shopKey, string &$error): string {
+    if (!isset($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+        return '';
+    }
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $error = 'Image upload failed.';
+        return '';
+    }
+
+    $maxSize = 2 * 1024 * 1024;
+    if (($file['size'] ?? 0) > $maxSize) {
+        $error = 'Image must be under 2MB.';
+        return '';
+    }
+
+    $tmp = $file['tmp_name'] ?? '';
+    if ($tmp === '' || !is_uploaded_file($tmp)) {
+        $error = 'Invalid upload.';
+        return '';
+    }
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->file($tmp);
+    $allowed = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+    ];
+    if (!isset($allowed[$mime])) {
+        $error = 'Only JPG, PNG, or WebP images are allowed.';
+        return '';
+    }
+
+    $uploadDir = __DIR__ . '/../assets/uploads/menu';
+    if (!ensure_upload_dir($uploadDir, $error)) {
+        return '';
+    }
+
+    $safeShop = preg_replace('/[^a-z0-9]/', '', strtolower($shopKey));
+    $fileName = $safeShop . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(4)) . '.' . $allowed[$mime];
+    $destPath = $uploadDir . '/' . $fileName;
+
+    if (!move_uploaded_file($tmp, $destPath)) {
+        $error = 'Could not save uploaded image.';
+        return '';
+    }
+
+    return 'assets/uploads/menu/' . $fileName;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $shopKey !== '') {
     $action = (string) ($_POST['action'] ?? '');
 
@@ -42,7 +103,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $shopKey !== '') {
         $itemId = (int) $_POST['item_id'];
         $name = trim((string) ($_POST['name'] ?? ''));
         $price = (float) ($_POST['price'] ?? 0);
-        $image = trim((string) ($_POST['image'] ?? ''));
+        $existingImage = trim((string) ($_POST['existing_image'] ?? ''));
+        $image = $existingImage;
+        if (isset($_FILES['image_file']) && $error === '') {
+            $uploadPath = handle_image_upload($_FILES['image_file'], $shopKey, $error);
+            if ($uploadPath !== '') {
+                $image = $uploadPath;
+            }
+        }
         $isAvailable = isset($_POST['is_available']) ? 1 : 0;
         $availableFrom = trim((string) ($_POST['available_from'] ?? ''));
         $availableTo = trim((string) ($_POST['available_to'] ?? ''));
@@ -67,7 +135,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $shopKey !== '') {
     if ($action === 'add') {
         $name = trim((string) ($_POST['name'] ?? ''));
         $price = (float) ($_POST['price'] ?? 0);
-        $image = trim((string) ($_POST['image'] ?? ''));
+        $image = '';
+        if (isset($_FILES['image_file']) && $error === '') {
+            $image = handle_image_upload($_FILES['image_file'], $shopKey, $error);
+        }
         $isAvailable = isset($_POST['is_available']) ? 1 : 0;
         $availableFrom = trim((string) ($_POST['available_from'] ?? ''));
         $availableTo = trim((string) ($_POST['available_to'] ?? ''));
@@ -75,7 +146,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $shopKey !== '') {
         $autoReady = isset($_POST['auto_ready']) ? 1 : 0;
 
         if ($name === '' || $image === '') {
-            $error = 'Name and image are required for a new item.';
+            if ($error === '') {
+                $error = 'Name and image are required for a new item.';
+            }
         } else {
             $stmt = mysqli_prepare($conn, "INSERT INTO menu_items (shop_key, name, price, image, is_available, available_from, available_to, quality_note, auto_ready) VALUES (?, ?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), ?, ?)");
             if ($stmt) {
@@ -139,7 +212,7 @@ if ($shopKey !== '') {
     <?php else: ?>
         <div class="card">
             <div class="section-title">Add New Item</div>
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
                 <div class="row">
                     <div>
@@ -151,8 +224,8 @@ if ($shopKey !== '') {
                         <input type="number" name="price" min="0" step="0.01" required>
                     </div>
                     <div>
-                        <label>Image Path</label>
-                        <input type="text" name="image" placeholder="assets/food/example.jpg" required>
+                        <label>Image</label>
+                        <input type="file" name="image_file" accept="image/*" required>
                     </div>
                     <div>
                         <label>Quality Note</label>
@@ -184,9 +257,10 @@ if ($shopKey !== '') {
         <?php else: ?>
             <?php foreach ($items as $item): ?>
                 <div class="card">
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
                         <input type="hidden" name="action" value="update">
                         <input type="hidden" name="item_id" value="<?= (int) $item['id'] ?>">
+                        <input type="hidden" name="existing_image" value="<?= htmlspecialchars((string) $item['image']) ?>">
                         <div class="row">
                             <div>
                                 <label>Name</label>
@@ -197,8 +271,13 @@ if ($shopKey !== '') {
                                 <input type="number" name="price" min="0" step="0.01" value="<?= htmlspecialchars((string) $item['price']) ?>" required>
                             </div>
                             <div>
-                                <label>Image Path</label>
-                                <input type="text" name="image" value="<?= htmlspecialchars((string) $item['image']) ?>" required>
+                                <label>Replace Image</label>
+                                <input type="file" name="image_file" accept="image/*">
+                                <?php if (!empty($item['image'])): ?>
+                                    <div class="muted" style="margin-top:6px;">
+                                        <img src="../<?= htmlspecialchars((string) $item['image']) ?>" alt="Item image" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;">
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <div>
                                 <label>Quality Note</label>
