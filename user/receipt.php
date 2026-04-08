@@ -36,6 +36,8 @@ $items = json_decode((string) ($order['items_json'] ?? ''), true);
 if (!is_array($items)) {
     $items = [];
 }
+$statusUpper = strtoupper((string) ($order['status'] ?? ''));
+$isCancelled = ($statusUpper === 'CANCELLED');
 ?>
 <!DOCTYPE html>
 <html>
@@ -86,6 +88,15 @@ if (!is_array($items)) {
         }
         .items ul { margin: 6px 0 0 18px; padding: 0; }
         .muted { color: #6b7280; font-size: 12px; margin-top: 6px; }
+        .notice-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -95,7 +106,11 @@ if (!is_array($items)) {
     </div>
 
     <div class="card">
-        <div class="row" style="color:#16a34a;font-weight:700;">Payment Successful</div>
+        <?php if ($isCancelled): ?>
+            <div class="notice-cancelled">Order Cancelled by Shop</div>
+        <?php else: ?>
+            <div class="row" style="color:#16a34a;font-weight:700;">Payment Successful</div>
+        <?php endif; ?>
         <div class="row"><b>Payment:</b> <?= htmlspecialchars((string) ($order['payment_method'] ?? 'UPI') . ' - ' . (string) ($order['payment_status'] ?? 'PAID')) ?></div>
         <div class="row"><b>Token:</b></div>
         <div class="token"><?= htmlspecialchars((string) $order['token_code']) ?></div>

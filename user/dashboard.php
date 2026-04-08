@@ -8,18 +8,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'user') {
 }
 $user_name = $_SESSION['name'];
 $userId = (int) $_SESSION['user_id'];
-$cancelledCount = 0;
-
-$stmt = mysqli_prepare($conn, "SELECT COUNT(*) AS cnt FROM orders WHERE user_id = ? AND status = 'CANCELLED'");
-if ($stmt) {
-    mysqli_stmt_bind_param($stmt, "i", $userId);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    if ($row = mysqli_fetch_assoc($result)) {
-        $cancelledCount = (int) ($row['cnt'] ?? 0);
-    }
-    mysqli_stmt_close($stmt);
-}
 ?>
 <!DOCTYPE html>
 <html>
@@ -170,16 +158,6 @@ body {
     margin-top: 4px; /* Reduced margin */
     color: rgba(255,255,255,0.9);
 }
-/* Cancel notice */
-.notice {
-    margin: 12px 12px 0;
-    background: #fee2e2;
-    color: #991b1b;
-    padding: 10px 12px;
-    border-radius: 10px;
-    font-size: 13px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-}
 /* Bottom Nav */
 .bottom-nav {
     position: fixed;
@@ -269,11 +247,6 @@ img:hover {
         Offers
     </a>
 </div>
-<?php if ($cancelledCount > 0): ?>
-    <div class="notice">
-        You have <?= (int) $cancelledCount ?> cancelled order<?= $cancelledCount === 1 ? '' : 's' ?>. Check Orders for details.
-    </div>
-<?php endif; ?>
 <div class="canteen-section">
     <!-- LEFT SIDE - Image -->
     <div class="canteen-left">
