@@ -12,7 +12,7 @@ ensure_orders_schema($conn);
 date_default_timezone_set('Asia/Kolkata');
 
 $statusFilter = strtoupper(trim((string) ($_GET['status'] ?? 'ALL')));
-$allowedStatuses = ['ALL', 'PLACED', 'PREPARING', 'READY', 'COMPLETED', 'CANCELLED'];
+$allowedStatuses = ['ALL', 'PLACED', 'READY'];
 if (!in_array($statusFilter, $allowedStatuses, true)) {
     $statusFilter = 'ALL';
 }

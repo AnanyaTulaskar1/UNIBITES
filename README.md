@@ -71,6 +71,70 @@ The system uses role-based sessions:
 
 Role is stored in the `users` table and checked on every dashboard page.
 
+## UI Design and Layout
+
+Unibites uses a simple, clean design approach that keeps the interface consistent across every role and module. The application emphasizes readability and usability with a neutral color palette, clear spacing, and consistent controls.
+
+The landing/dashboard view for users is designed to make food ordering fast and intuitive:
+
+- Top navigation includes the Unibites logo and quick access to login and signup.
+- Central shop/menu access lets users select a campus canteen and browse available items.
+- The main screen highlights the project purpose with a clear statement of the ordering flow and user benefits.
+- Prominent action buttons such as `Browse Menu`, `View Cart`, and `Order Status` guide users through the process.
+
+Consistency is maintained across the app by using the same UI patterns for:
+
+- forms and buttons
+- alerts and feedback messages
+- menu/item cards
+- dashboard tables and status indicators
+
+This design helps users move smoothly between the user, shop, and admin interfaces while keeping the overall experience simple and focused.
+
+## UI Interface Features
+
+### Login / Signup Pages
+- User login: Allows campus users to access the ordering system.
+- Shop login: Enables canteen staff to manage orders and menu items.
+- Admin login: Grants administrators access to overall system controls.
+- Signup form with validation: Ensures new users provide valid details before registration.
+
+### User Dashboard
+- Shop selection: Lets users choose a canteen/shop to order from.
+- Menu browsing: Displays available food items with price and availability.
+- Search/filter items: Helps users find menu items quickly.
+- Featured/new items: Highlights recently added or popular products.
+
+### Menu / Cart Interface
+- Add/remove item buttons: Allows users to update cart contents easily.
+- Quantity controls: Supports changing quantity for each selected item.
+- Cart summary with total price: Shows order totals before checkout.
+- Checkout button: Starts the order placement and payment process.
+
+### Order Flow
+- Payment form: Collects payment method and basic transaction details.
+- Order confirmation page: Shows the final order summary and confirmation.
+- Receipt display: Provides a printable or viewable receipt after payment.
+- Token generation/status screen: Displays the order token number and current status.
+
+### Shop Dashboard
+- Order list with statuses: Shows all incoming orders and their progress.
+- Menu management UI: Lets shop staff add, edit, or remove menu items.
+- Add/edit item form: Supports updating item details and availability.
+- Upload item images: Enables adding pictures for menu products.
+
+### Admin Dashboard
+- All orders overview: Displays overall order activity across shops.
+- Sales reports: Shows sales data for tracking revenue.
+- User/shop management: Provides admin controls for users and shop entries.
+- Filters and export buttons: Lets admin filter records and export reports.
+
+### Common UI Elements
+- Header/navigation bar: Provides easy navigation across all pages.
+- Footer with contact/project info: Displays project and contact details.
+- Alerts/messages for success or errors: Informs users about form results and actions.
+- Responsive layout for mobile: Ensures the app works on phones and tablets.
+
 ## Core Logic and Flows
 
 ### Authentication
@@ -198,6 +262,134 @@ Rules:
 3. Create DB `unibites`.
 4. Import `database/unibites.sql`.
 5. Open `http://localhost/Unibites/`.
+
+## 10. References for Unibites
+
+The following websites and tools were used while developing the Unibites project.
+
+### Websites Referenced
+
+11. World Wide Web Consortium (W3C)
+
+Website: https://www.w3.org
+
+Description: Official documentation source for HTML and CSS standards.
+
+12. W3Schools
+
+Website: https://www.w3schools.com
+
+Description: Used for learning syntax and examples of web technologies.
+
+13. Stack Overflow
+
+Website: https://stackoverflow.com
+
+Description: Used for debugging errors and solving coding issues.
+
+14. GitHub
+
+Website: https://github.com
+
+Description: Used for version control and project file management.
+
+15. Google Developers
+
+Website: https://developers.google.com
+
+Description: Used for understanding web development best practices.
+
+16. GeeksforGeeks
+
+Website: https://www.geeksforgeeks.org
+
+Description: Used for programming and algorithm explanations.
+
+17. Microsoft Learn
+
+Website: https://learn.microsoft.com
+
+Description: Used for learning development tools and software concepts.
+
+18. PHP Manual
+
+Website: https://www.php.net/manual/en/
+
+Description: Used for PHP function reference and syntax.
+
+19. MySQL Reference Manual
+
+Website: https://dev.mysql.com/doc/
+
+Description: Used for query and database reference.
+
+20. XAMPP Documentation
+
+Website: https://www.apachefriends.org/docs/
+
+Description: Used for local server installation and configuration.
+
+### Development Tools Referenced
+
+21. Visual Studio Code
+
+Description: Used for writing and managing project code.
+
+22. Google Chrome
+
+Description: Used for testing and debugging the application.
+
+23. Mozilla Firefox
+
+Description: Used for browser compatibility testing.
+
+24. Microsoft Edge
+
+Description: Used for cross-platform validation.
+
+### Research and Documentation Sources
+
+25. Agile Alliance
+
+Website: https://www.agilealliance.org
+
+Description: Used for understanding agile development practices and project planning.
+
+26. Scrum Guides
+
+Website: https://scrumguides.org
+
+Description: Used for research on agile methodologies and team workflows.
+
+27. IEEE Software Engineering Standards
+
+Description: Used for software engineering best practices and standards.
+
+28. ISO Software Development Guidelines
+
+Description: Used for standard development methodologies and quality guidelines.
+
+29. Software Testing Help
+
+Website: https://www.softwaretestinghelp.com
+
+Description: Used for research on software testing strategies and validation.
+
+30. Selenium Documentation
+
+Description: Used for automated testing reference.
+
+31. Git Documentation
+
+Website: https://git-scm.com/docs
+
+Description: Used for documentation on version control workflows.
+
+32. Bootstrap Documentation
+
+Website: https://getbootstrap.com
+
+Description: Used for layout and responsive design patterns.
 
 Test roles:
 - Create a normal user via signup.
